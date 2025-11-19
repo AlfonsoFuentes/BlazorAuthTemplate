@@ -1,0 +1,89 @@
+﻿@page "/login"
+
+@using Shared.Dtos.Registrations
+@using Shared.Dtos.Responses
+
+@attribute [AllowAnonymous]
+
+
+<EditForm Model="@Model" OnValidSubmit="SubmitAsync">
+
+    <DataAnnotationsValidator ></DataAnnotationsValidator>
+    <MudCard>
+        <MudCardContent Style="d-flex justify-center">
+            <MudGrid Justify="Justify.Center" Spacing="2">
+
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudText Typo="Typo.h4"><strong>CP Plant Simulator</strong></MudText>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudText>Interactive Software to Simulate Finishing Lines</MudText>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudText>Colgate-Palmolive - Cali</MudText>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudText>Don't have an account? <MudLink Href="/register">Register here</MudLink></MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                  @*   <TextField @bind-Value="@_registerUserModel.Email"
+                                  Label="Email"
+                                  InputType="InputType.Email"
+                                  ValidateAsync="ValidateAsync"
+                                  For="()=>_registerUserModel.Email">
+                    </TextField> *@
+                    <MudTextField Label="Email" InputType="InputType.Email" @bind-Value="@Model.Email"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField Label="Password" InputType="InputType.Password" @bind-Value="@Model.Password"></MudTextField>
+                @*     <TextField @bind-Value="@_registerUserModel.Password"
+                                  Label="Password"
+                                  InputType="InputType.Password"
+                                  ValidateAsync="ValidateAsync"
+                                  For="()=>_registerUserModel.Password">
+                    </TextField> *@
+
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                </MudItem>
+
+            </MudGrid>
+        </MudCardContent>
+        <MudCardActions Class="d-flex justify-center">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"  >Sign In</MudButton>
+        </MudCardActions>
+    </MudCard>
+
+
+
+
+
+</EditForm>
+@if (loginResponse.Messages.Count > 0)
+{
+    foreach (var row in loginResponse.Messages)
+    {
+        @row
+    }
+}
+
+@code {
+    
+    LoginRequest Model = new();
+    LoginResponse loginResponse = new();
+    async Task SubmitAsync()
+    {
+       
+        loginResponse.Message = "Wait....";
+        loginResponse = await AuthService.Login(Model);
+        if (loginResponse.Code == 1)
+            NavManager.NavigateTo("/");
+      
+    }
+}

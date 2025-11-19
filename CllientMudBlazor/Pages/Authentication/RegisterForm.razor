@@ -1,0 +1,109 @@
+﻿@page "/register"
+@using Shared.Dtos.Registrations
+@using Shared.Dtos.Responses
+@attribute [AllowAnonymous]
+
+<EditForm Model="@Model" OnValidSubmit="SubmitAsync">
+
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <MudCard>
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="12">
+                    <MudText>
+                        Already have an account? <MudLink Href="login">Sign In here</MudLink>
+                    </MudText>
+
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudTextField Label="UserName" @bind-Value="@Model.UserName"></MudTextField>
+                    @*  <TextField @bind-Value="@_registerUserModel.FirstName"
+                               Label="First Name"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.FirstName">
+                    </TextField> *@
+
+                </MudItem>
+                @* <MudItem xs="12" sm="12">
+                    <TextField @bind-Value="@_registerUserModel.LastName"
+                               Label="Last Name"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.LastName">
+                    </TextField>
+
+                </MudItem> *@
+                <MudItem xs="12" sm="12">
+                    <MudTextField Label="Email" @bind-Value="@Model.Email" InputType="InputType.Email"></MudTextField>
+                    @*    <TextField @bind-Value="@_registerUserModel.Email"
+                               Label="Email"
+                               InputType="InputType.Email"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.Email">
+                    </TextField> *@
+
+
+                </MudItem>
+                @*  <MudItem xs="12" sm="12">
+                    <TextField @bind-Value="@_registerUserModel.PhoneNumber"
+                               Label="Phone Number"
+                               InputType="InputType.Telephone"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.PhoneNumber">
+                    </TextField>
+
+
+                </MudItem> *@
+                <MudItem xs="12" sm="12">
+                    <MudTextField Label="Password" @bind-Value="@Model.Password" InputType="InputType.Password"></MudTextField>
+                    @*      <TextField @bind-Value="@_registerUserModel.Password"
+                               Label="Password"
+                               InputType="InputType.Password"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.Password">
+                    </TextField>
+ *@
+
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    @*       <TextField @bind-Value="@_registerUserModel.ConfirmPassword"
+                               Label="Confirm Password"
+                               InputType="InputType.Password"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>_registerUserModel.ConfirmPassword">
+                    </TextField> *@
+
+
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType=ButtonType.Submit Color=Color.Primary>Register</MudButton>
+        </MudCardActions>
+    </MudCard>
+
+
+
+
+</EditForm>
+@if (loginResponse.Messages.Count > 0)
+{
+    foreach(var row in loginResponse.Messages)
+    {
+        @row
+    }
+}
+
+@code {
+
+    RegistrationRequest Model = new();
+    StatusResponse loginResponse = new();
+    async Task SubmitAsync()
+    {
+
+        loginResponse.Message = "Wait....";
+        loginResponse = await AuthService.Register(Model);
+        if (loginResponse.Code == 1)
+            NavManager.NavigateTo("/");
+
+    }
+}

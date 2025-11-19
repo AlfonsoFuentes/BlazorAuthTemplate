@@ -1,0 +1,38 @@
+﻿<AuthorizeView>
+    <Authorized>
+        <MudMenu Class="mt-1 ml-4">
+            <ActivatorContent>
+                <MudAvatar Color="Color.Info" Size="Size.Medium">@LetterOfName</MudAvatar>
+            </ActivatorContent>
+            <ChildContent>
+                <UserCard Class="mt-n2" Email="@Email"
+                          Name="@FirstName"
+                          LetterOfName="@LetterOfName"></UserCard>
+
+                <MudDivider Class="mb-2"></MudDivider>
+                <MudIconButton OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout</MudIconButton>
+
+            </ChildContent>
+        </MudMenu>
+
+
+
+
+
+    </Authorized>
+    <NotAuthorized>
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" IconColor="Color.Info"
+                 AriaLabel="Open user menu">
+            <MudMenuItem Label="Login" Href="/login" />
+            <MudMenuItem Label="Register" Href="/register" />
+
+        </MudMenu>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    public void Logout()
+    {
+        NavManager.NavigateTo("/logout");
+    }
+}

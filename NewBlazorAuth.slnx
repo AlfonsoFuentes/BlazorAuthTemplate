@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="CllientMudBlazor/CllientMudBlazor.csproj" Id="b28694bf-f6a8-4941-8d72-d02c03078eb5" />
+  <Project Path="Server/Server.csproj" />
+  <Project Path="Shared/Shared.csproj" />
+</Solution>
