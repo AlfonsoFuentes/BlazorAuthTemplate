@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,7 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
+    <PackageReference Include="LazyCache" Version="2.4.0" />
+    <PackageReference Include="LazyCache.AspNetCore" Version="2.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.0" />
@@ -20,6 +25,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pages\Projects\Starts\Backgrounds\" />
+    <Folder Include="Pages\Projects\Starts\Investments\" />
+    <Folder Include="Pages\Projects\Starts\Constrainsts\" />
+    <Folder Include="Pages\Projects\Starts\Assumptions\" />
+    <Folder Include="Pages\Projects\Starts\ExpertJudgments\" />
+    <Folder Include="Pages\Projects\Starts\KnownRisks\" />
+    <Folder Include="Pages\Projects\Starts\Scopes\" />
+    <Folder Include="Pages\Projects\Starts\Requirements\" />
+    <Folder Include="Pages\Projects\Starts\Objectives\" />
+    <Folder Include="Pages\Projects\Starts\StakeHolders\" />
   </ItemGroup>
 
 </Project>

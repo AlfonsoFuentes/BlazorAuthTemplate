@@ -1,0 +1,18 @@
+﻿<MudTooltip Text="@FullText" Placement="Placement.Top">
+    <MudText Typo="@Typo" Color="@Color" Class="@Class">
+        @Truncated
+    </MudText>
+</MudTooltip>
+
+@code {
+    [Parameter] public string FullText { get; set; } = string.Empty;
+    [Parameter] public int MaxLength { get; set; } = 25;
+    [Parameter] public Typo Typo { get; set; } = Typo.body1;
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    private string Truncated =>
+        string.IsNullOrEmpty(FullText) || FullText.Length <= MaxLength
+            ? FullText
+            : FullText[..MaxLength] + "...";
+}

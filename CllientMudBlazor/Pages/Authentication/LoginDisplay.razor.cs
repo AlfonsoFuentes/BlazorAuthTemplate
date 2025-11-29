@@ -13,11 +13,11 @@ namespace CllientMudBlazor.Pages.Authentication
    
         private string Email { get; set; } = string.Empty;
         private string LetterOfName { get; set; } = string.Empty;
-        [Parameter]
-        public ClaimsPrincipal User { get; set; } = null!;
-        protected override void OnParametersSet()
+
+        protected override async Task OnInitializedAsync()
         {
-            var user = User;
+           var user = await UserInfoService.GetUserNameAsync();
+        
             if (user == null) return;
             if (user.Identity?.IsAuthenticated == true)
             {
@@ -35,6 +35,11 @@ namespace CllientMudBlazor.Pages.Authentication
 
                 StateHasChanged();
             }
+
+        }
+        protected override void OnParametersSet()
+        {
+            
         }
     }
 }

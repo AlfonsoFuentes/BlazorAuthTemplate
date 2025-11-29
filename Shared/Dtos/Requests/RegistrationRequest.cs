@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace Shared.Dtos.Registrations
+namespace Shared.Dtos.Requests
 {
     public class RegistrationRequest
     {
@@ -16,6 +16,10 @@ namespace Shared.Dtos.Registrations
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+        [Required]
+        [PasswordPropertyText]
+        [Compare("Password")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
     public class LoginRequest
     {

@@ -1,8 +1,8 @@
 ﻿@page "/login"
-
-@using Shared.Dtos.Registrations
+@using Shared.Dtos.Requests
 @using Shared.Dtos.Responses
 
+@layout MainLayout
 @attribute [AllowAnonymous]
 
 
@@ -23,7 +23,7 @@
                     <MudText>Colgate-Palmolive - Cali</MudText>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-center">
-                    <MudText>Don't have an account? <MudLink Href="/register">Register here</MudLink></MudText>
+                    <MudText>Don't have an account? <MudLink OnClick="GoToRegister">Register here</MudLink></MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4">
                 </MudItem>
@@ -85,5 +85,16 @@
         if (loginResponse.Code == 1)
             NavManager.NavigateTo("/");
       
+    }public void GoToRegister()
+    {
+        try
+        {
+            NavManager.NavigateTo("/registerform");
+        }
+        catch(Exception ex)
+        {
+            string mes= ex.Message;
+        }
+
     }
 }

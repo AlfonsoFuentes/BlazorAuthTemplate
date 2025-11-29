@@ -5,6 +5,7 @@ using System.Security.Claims;
 
 namespace CllientMudBlazor.Services
 {
+    
     public class AuthProvider : AuthenticationStateProvider
     {
         private readonly HttpClient _http;

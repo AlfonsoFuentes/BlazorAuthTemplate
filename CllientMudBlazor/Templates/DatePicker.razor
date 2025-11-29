@@ -1,0 +1,50 @@
+﻿<MudDatePicker @ref="_picker"
+               Label="@Label"
+               Margin="Margin.Dense"
+               Disabled=@Disabled
+               Date="@Value"
+               DateChanged="OnValueChanged"
+               AutoClose="@_autoClose"
+               For="@For"
+               Variant="Variant.Outlined">
+    <PickerActions Context="pickeractions">
+        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _picker.ClearAsync())">Clear</MudButton>
+        <MudButton OnClick="@(() => _picker.CloseAsync(false))">Cancel</MudButton>
+        <MudButton OnClick="@(() => _picker.CloseAsync())">Ok</MudButton>
+    </PickerActions>
+</MudDatePicker>
+@code {
+    private MudDatePicker _picker = null!;
+    private bool _autoClose = true;
+    public CultureInfo _en = CultureInfo.GetCultureInfo("en-US");
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public DateTime? Value { get; set; }
+    [Parameter]
+    public EventCallback<DateTime?> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback ValidateAsync { get; set; }
+    [Parameter]
+    public EventCallback Change { get; set; }
+    [Parameter]
+    public EventCallback ChangePrior { get; set; }
+    [Parameter]
+    public Expression<Func<DateTime?>>? For { get; set; }
+    async Task OnValueChanged(DateTime? value)
+    {
+      
+        if (ChangePrior.HasDelegate)
+            await ChangePrior.InvokeAsync();
+        Value = value;
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+        if (ValidateAsync.HasDelegate)
+            await ValidateAsync.InvokeAsync();
+    }
+}

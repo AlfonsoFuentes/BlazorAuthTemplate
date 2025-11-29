@@ -1,0 +1,109 @@
+﻿
+<EditForm Model="@Model" OnValidSubmit="Submit">
+    <MudCard>
+        <MudCardContent>
+
+            <FluentValidationValidator @ref="_fluentValidationValidator" />
+
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.Name"
+                               Label="Vendor Name"
+                        
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.Name">
+                    </TextField>
+
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.NickName"
+                               Label="Short Name"
+                             
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.NickName">
+                    </TextField>
+
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.VendorCode"
+                               Label="Vendor Code"
+                           
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.VendorCode">
+                    </TextField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <Select @bind-Value="Model.SupplierCurrency"
+                            Label="Supplier Currency"
+                            Items="CurrencyEnum.List"
+                            ValidateAsync="ValidateAsync"
+                            Clearable="false">
+                       </Select>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <Field Label="Tax Code LD" >@Model.TaxCodeLD</Field>
+
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <Field Label="Tax Code LP" >@Model.TaxCodeLP</Field>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.ContactName"
+                               Label="Contact Name"
+                                ValidateAsync="ValidateAsync"
+                               For="()=>Model.ContactName">
+                    </TextField>
+
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.ContactEmail"
+                               Label="Email"
+                              
+                               InputType="InputType.Email"
+                          
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.ContactEmail">
+                    </TextField>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.PhoneNumber"
+                               Label="Cell Phone"
+                           
+                               InputType="InputType.Telephone"
+                         
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.PhoneNumber">
+                    </TextField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="@Model.Address"
+                               Label="Address"
+                          
+                            
+                         
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.Address">
+                    </TextField>
+                </MudItem>
+
+
+            </MudGrid>
+
+
+        </MudCardContent>
+        <MudCardActions>
+
+            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!Validated ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
+
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+
+}

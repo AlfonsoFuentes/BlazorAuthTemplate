@@ -85,4 +85,20 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Domain\Configurations\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\BackGrounds\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Investments\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Bennefits\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Constrainsts\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Assumptions\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\ExpertJudgments\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\KnownRisks\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Qualitys\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Scopes\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Requirements\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\Objectives\" />
+    <Folder Include="EndPoints\ProjectDashBoard\ProjectStarts\StakeHolders\" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,106 @@
+﻿@page "/projectDashboard/{Id:guid}"
+@using CllientMudBlazor.Pages.MainDashBoards
+<MudPaper Elevation="1" Class="pa-4">
+    <!-- ✅ Encabezado del proyecto -->
+    <div class="d-flex align-items-center mb-4">
+        <MudAvatar Size="Size.Medium" Color="@ProjectPhaseHelper.GetColor(_selectedProject.Status)">
+            @ProjectPhaseHelper.GetIcon(_selectedProject.Status)
+        </MudAvatar>
+        <div class="ml-3">
+            <MudText Typo="Typo.h5">@_selectedProject.Name</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default">
+                Phase: @_selectedProject.Phase • @_selectedProject.CompletionPercentage% complete
+            </MudText>
+        </div>
+    </div>
+
+    <!-- ✅ Métricas clave -->
+    <MudGrid Spacing="3" Class="mb-4">
+        <MudItem xs="12" sm="3">
+            <MetricsCard Value="12/16" Label="Deliverables" Color="Color.Success" />
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MetricsCard Value="8/10" Label="Approved POs" Color="Color.Primary" />
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MetricsCard Value="$87.5k" Label="Spent" Color="Color.Warning" />
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MetricsCard Value="3" Label="Risks" Color="Color.Error" />
+        </MudItem>
+    </MudGrid>
+
+    <!-- ✅ Navegación por fases (optimizada) -->
+    <MudPaper Elevation="1" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Stretch" Justify="Justify.SpaceBetween">
+            <MudButton Variant="@(SelectedPhase == 1 ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       Disabled="@DisableStart"
+                       OnClick="() => SelectPhase(1)"
+                       StartIcon="@Icons.Material.Filled.Flag">
+                Start
+            </MudButton>
+
+            <MudButton Variant="@(SelectedPhase == 2 ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       Disabled="@DisablePlanning"
+                       OnClick="() => SelectPhase(2)"
+                       StartIcon="@Icons.Material.Filled.Description">
+                Planning
+            </MudButton>
+
+            <MudButton Variant="@(SelectedPhase == 3 ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       Disabled="@DisableExecution"
+                       OnClick="() => SelectPhase(3)"
+                       StartIcon="@Icons.Material.Filled.Build">
+                Execution
+            </MudButton>
+
+            <MudButton Variant="@(SelectedPhase == 4 ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       Disabled="@DisableMonitoring"
+                       OnClick="() => SelectPhase(4)"
+                       StartIcon="@Icons.Material.Filled.MonitorHeart">
+                Monitoring
+            </MudButton>
+
+            <MudButton Variant="@(SelectedPhase == 5 ? Variant.Filled : Variant.Outlined)"
+                       Color="Color.Primary"
+                       Disabled="@DisableClosing"
+                       OnClick="() => SelectPhase(5)"
+                       StartIcon="@Icons.Material.Filled.DoneAll">
+                Closing
+            </MudButton>
+        </MudStack>
+
+        <!-- ✅ Contenido dinámico (corregido y limpio) -->
+        @if (SelectedPhase > 0)
+        {
+            <div class="mt-4">
+                @switch (SelectedPhase)
+                {
+                    case 1:
+                        <DashboardStart ProjectId="_selectedProject.Id" />
+                        break;
+                    case 2:
+                        <DashboardPlanning  />
+                        break;
+                    case 3:
+                        <DashboardExecution  />
+                        break;
+                    case 4:
+                        <DashboardMonitoring  />
+                        break;
+                    case 5:
+                        <DashboardClosings  />
+                        break;
+                }
+            </div>
+        }
+    </MudPaper>
+</MudPaper>
+
+@code {
+   
+}

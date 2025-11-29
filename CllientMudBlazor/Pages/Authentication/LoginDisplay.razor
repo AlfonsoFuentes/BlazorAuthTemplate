@@ -1,8 +1,10 @@
 ﻿<AuthorizeView>
     <Authorized>
-        <MudMenu Class="mt-1 ml-4">
+        <MudMenu Class="mt-1 ml-2"
+                 Size="Size.Medium"
+                 AriaLabel="User menu">
             <ActivatorContent>
-                <MudAvatar Color="Color.Info" Size="Size.Medium">@LetterOfName</MudAvatar>
+                <MudAvatar Color="Color.Primary" Size="Size.Medium">@LetterOfName</MudAvatar>
             </ActivatorContent>
             <ChildContent>
                 <UserCard Class="mt-n2" Email="@Email"
@@ -14,17 +16,13 @@
 
             </ChildContent>
         </MudMenu>
-
-
-
-
-
+      
     </Authorized>
     <NotAuthorized>
-        <MudMenu Icon="@Icons.Material.Filled.MoreVert" IconColor="Color.Info"
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" IconColor="Color.Primary"
                  AriaLabel="Open user menu">
             <MudMenuItem Label="Login" Href="/login" />
-            <MudMenuItem Label="Register" Href="/register" />
+            <MudMenuItem Label="Register" OnClick="GoToRegister" />
 
         </MudMenu>
     </NotAuthorized>
@@ -34,5 +32,17 @@
     public void Logout()
     {
         NavManager.NavigateTo("/logout");
+    }
+    public void GoToRegister()
+    {
+        try
+        {
+            NavManager.NavigateTo("/registerform");
+        }
+        catch(Exception ex)
+        {
+            string mes= ex.Message;
+        }
+
     }
 }

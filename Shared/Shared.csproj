@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Dtos\Commons\" />
+    <Folder Include="Dtos\KnownRisks\" />
+    <Folder Include="Dtos\Starts\ExpertJudgements\" />
+    <Folder Include="Dtos\Starts\Investments\" />
+    <Folder Include="Dtos\Starts\StakeHolders\" />
+  </ItemGroup>
+
 </Project>

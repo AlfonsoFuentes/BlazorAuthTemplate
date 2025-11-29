@@ -1,17 +1,26 @@
-﻿﻿<CascadingAuthenticationState>
+﻿@using CllientMudBlazor.Pages.Authentication
 
-    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <Authorizing>
-                    <text>We are authorizing the user......</text>
-                </Authorizing>
-               <NotAuthorized>
+<CascadingValue Value="this">
+    <CascadingAuthenticationState>
+        <Error>
+            <Router AppAssembly="@typeof(Program).Assembly">
+                <Found Context="routeData">
+                    <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                        <NotAuthorized>
+                            <LoginDisplay />
+                        </NotAuthorized>
+                    </AuthorizeRouteView>
 
-               </NotAuthorized>
-            </AuthorizeRouteView>
+                </Found>
+                <NotFound>
 
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-    </Router>
-</CascadingAuthenticationState>
+
+                    <LayoutView Layout="@typeof(NotFoundLayout)">
+                        <p>Sorry, there's nothing at this address.</p>
+                    </LayoutView>
+
+                </NotFound>
+            </Router>
+        </Error>
+    </CascadingAuthenticationState>
+</CascadingValue>

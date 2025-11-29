@@ -1,7 +1,69 @@
 ﻿@page "/"
+@using CllientMudBlazor.Pages.MainDashBoards
 
-<PageTitle>Home</PageTitle>
+@if (_selectedProject == null)
+{
+    <MudGrid Spacing="4">
+        
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle1" Class="mb-3">Recent Projects</MudText>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var project in _recentProjects.Take(3))
+                {
+                    <ProjectChip Project="@project" />
+                }
+            </div>
+        </MudItem>
+        <MudItem xs="12">
+            <MudNavLink Href="/suppliers" Match="NavLinkMatch.Prefix">Suppliers</MudNavLink>
+            <MudNavLink Href="/Brands" Match="NavLinkMatch.Prefix">Brands</MudNavLink>
+            Aqui vamos a poner el Global Report cuando lo hagamos
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    
+}
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+
+@code {
+    private ProjectDashboardDto? _selectedProject;
+    private string _selectedProjectId = string.Empty;
+    private List<ProjectDashboardDto> _projects = new();
+    private List<ProjectDashboardDto> _recentProjects = new();
+
+    protected override void OnInitialized()
+    {
+       
+    }
+
+    private void OnProjectSelected(ProjectDashboardDto project)
+    {
+        _selectedProjectId = project.Id.ToString();
+        _selectedProject = project;
+    }
+
+    private void SelectProject(ProjectDashboardDto project) => OnProjectSelected(project);
+    private void OnNewProject() => NavManager.NavigateTo("/project/new");
+    private void OnGlobalReport() => NavManager.NavigateTo("/reports/global");
+
+    private Color GetPhaseColor(ProjectDashboardDto p) => p.Status.Id switch
+    {
+        2 => Color.Success,
+        1 => Color.Warning,
+        0 => Color.Primary,
+        _ => Color.Default
+    };
+
+    private string GetPhaseIcon(ProjectDashboardDto p) => p.Status.Id switch
+    {
+        2 => "🟢",
+        1 => "✅",
+        0 => "🔵",
+        3 => "⚫",
+        4 => "🗑️",
+        _ => "❓"
+    };
+}

@@ -1,0 +1,41 @@
+﻿@page "/Brands"
+@using CllientMudBlazor.Templates
+<MudStack Spacing="2">
+
+    <MudStack Row="true">
+        <IconButton ToolTip="Add new" Color="Color.Primary" OnClick="Add" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Add"></IconButton>
+
+        <MudSpacer></MudSpacer>
+        <TextField ValueChanged=OnNameFilter Value="@nameFilter" Placeholder="Search" Adornment="Adornment.Start"
+                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0"></TextField>
+    </MudStack>
+
+
+    <MudGrid>
+
+
+        @foreach (var item in FilteredItems)
+        {
+            <MudItem xs="12" sm="3">
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5"><strong> @item.Name</strong></MudText>
+
+
+                    </MudCardHeader>
+                    
+                    <MudCardActions>
+                        <IconButton ToolTip="@($"Edit {item.Name}")" Color="Color.Info" OnClick="() => Edit(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Edit"></IconButton>
+                        <IconButton ToolTip="@($"Delete {item.Name}")" Color="Color.Warning" OnClick="() => Delete(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.DeleteForever"></IconButton>
+                        
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+
+        }
+    </MudGrid>
+</MudStack>
+@code {
+
+}

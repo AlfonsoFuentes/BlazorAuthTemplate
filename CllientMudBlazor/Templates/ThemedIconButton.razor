@@ -1,0 +1,23 @@
+﻿<MudBadge Content="@BadgeContent"
+          Color="@BadgeColor"
+          Overlap="true"
+          Dot="@IsDot"
+          Bordered="@IsBordered">
+    <MudIconButton Icon="@Icon"
+                   Color="@Color"
+                   Size="@Size"
+                   Variant="@Variant"
+                   OnClick="@OnClick" />
+</MudBadge>
+
+@code {
+    [Parameter] public string? BadgeContent { get; set; }
+    [Parameter] public Color BadgeColor { get; set; } = Color.Default;
+    [Parameter] public bool IsDot { get; set; } = false;
+    [Parameter] public bool IsBordered { get; set; } = false;
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Circle;
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+}

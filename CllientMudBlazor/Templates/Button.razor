@@ -1,0 +1,24 @@
+﻿<MudTooltip Text="@ToolTip">
+    <MudButton ButtonType="@ButtonType" Variant=@Variant Color="@Color" OnClick="OnClick" Disabled=@Disabled Style="width:22px;padding:1px;">@Text</MudButton>
+</MudTooltip>
+@code {
+    [Parameter]
+    public Size Size { get; set; } = Size.Small;
+    [Parameter]
+    public ButtonType ButtonType { get; set; } = ButtonType.Button;
+    [Parameter]
+    public string ToolTip { get; set; } = string.Empty;
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = string.Empty;
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter]
+    public Color Color { get; set; } = Color.Transparent;
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+
+
+}

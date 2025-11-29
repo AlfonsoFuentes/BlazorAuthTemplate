@@ -1,0 +1,77 @@
+﻿
+
+<MudPaper Elevation="1" Class="pa-4">
+    <!-- ✅ Encabezado con acciones -->
+    <MudStack Spacing="2">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">@Title</MudText>
+            <MudSpacer />
+           
+            <IconButton Color="Color.Primary" ToolTip="@($"Add {Title}")" Icon="@Icons.Material.Filled.Add" OnClick="Add">
+
+            </IconButton>
+            <IconButton Color="Color.Secondary" ToolTip="Go Up" Icon="@Icons.Material.Filled.Upcoming" OnClick="OnHideTable">
+
+            </IconButton>
+            
+        </MudStack>
+        <MudSpacer />
+        <!-- ✅ Filtro de búsqueda -->
+        <MudTextField @bind-Value="nameFilter"
+                      Placeholder="Search"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Class="mt-0" />
+    </MudStack>
+
+    <MudDivider Class="my-4" />
+
+    <!-- ✅ Grid de tarjetas -->
+    <MudGrid Spacing="2">
+        @foreach (var item in FilteredItems)
+        {
+            <MudItem xs="12" sm="12">
+                <MudCard 
+                         Class="cursor-pointer"
+                         Elevation="1">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.subtitle1"><strong>@item.Order</strong></MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle2">@item.Name</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <IconButton ToolTip="@($"Order Up {item.Name}")" Color="Color.Info" OnClick="() => OrderUp(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.ArrowUpward"></IconButton>
+                        <IconButton ToolTip="@($"Order down {item.Name}")" Color="Color.Info" OnClick="() => OrderDown(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.ArrowDownward"></IconButton>
+                        <IconButton ToolTip="@($"Edit {item.Name}")" Color="Color.Info" OnClick="() => Edit(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.Edit"></IconButton>
+                        <IconButton ToolTip="@($"Delete {item.Name}")" Color="Color.Warning" OnClick="() => Delete(item)" Variant="Variant.Outlined" Icon="@Icons.Material.Outlined.DeleteForever"></IconButton>
+
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+
+        @if (!FilteredItems.Any())
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Class="text-center">
+                    No @Title.ToLower() found. Click "Add @Title" to get started.
+                </MudAlert>
+            </MudItem>
+        }
+    </MudGrid>
+</MudPaper>
+
+
+
+
+@code {
+
+    [Parameter]
+    public EventCallback HideTable { get; set; }
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+
+}

@@ -1,0 +1,41 @@
+﻿@if (IsBold)
+{
+    <strong title="@FullText" class="truncated-text">@TruncatedText</strong>
+}
+else
+{
+    <span title="@FullText" class="truncated-text">@TruncatedText</span>
+}
+<style>
+    .truncated-text {
+        display: block;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.875rem;
+    }
+</style>
+@code {
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool IsBold { get; set; } = false;
+
+    private string FullText => Text;
+    private string TruncatedText
+    {
+        get
+        {
+            const int MaxLength = 100;
+            if(string.IsNullOrEmpty(Text))
+            {
+                return string.Empty;
+            }
+            return Text.Length > MaxLength
+                ? Text.Substring(0, MaxLength) + "..."
+                : Text;
+        }
+    }
+}

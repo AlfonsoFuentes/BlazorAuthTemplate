@@ -1,0 +1,65 @@
+﻿<MudGrid>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Gantt</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Expend</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>WBS</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Risk Matrix</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Resources</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Communications</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Acquisitions</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public EventCallback ParentGetAll { get; set; }
+}

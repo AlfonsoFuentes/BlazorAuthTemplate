@@ -1,0 +1,30 @@
+﻿<MudSwitch Label="@Label"
+           Value=@Value
+           ValueChanged="OnValueChanged"
+           T="bool"
+           Color="Color.Primary"></MudSwitch>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public bool Value { get; set; }
+    [Parameter]
+    public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback ValidateAsync { get; set; }
+    [Parameter]
+    public EventCallback Change { get; set; }
+    [Parameter]
+    public Expression<Func<bool>>? For { get; set; }
+    async Task OnValueChanged(bool value)
+    {
+        Value = value;
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+        if (ValidateAsync.HasDelegate)
+            await ValidateAsync.InvokeAsync();
+    }
+}

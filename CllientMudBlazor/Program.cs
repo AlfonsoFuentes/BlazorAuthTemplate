@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using CllientMudBlazor;
 using CllientMudBlazor.Services;
+using CllientMudBlazor.Services.HttPServives;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -28,10 +29,11 @@ builder.Services.AddTransient<AuthenticationHeaderHandler>()
                 .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 builder.Services.AddHttpClientInterceptor();
 builder.Services.AddMudServices();
-
+builder.Services.AddScoped<ISnackBarService, SnackBarService>();
+builder.Services.AddScoped<IHttpServices, HttpServices>();
 builder.Services.AddScoped<AuthenticationStateProvider, AuthProvider>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
-
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 await builder.Build().RunAsync();

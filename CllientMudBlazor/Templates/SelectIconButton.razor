@@ -1,0 +1,62 @@
+﻿@typeparam TValue
+<MudStack Row=true AlignItems="AlignItems.Baseline" Justify="Justify.SpaceBetween" Style="width:100%">
+
+    <MudSelect Value="Value"
+               ValueChanged="OnValueChanged"
+               Variant="Variant.Outlined"
+               T="TValue"
+               Label="@Label"
+               Margin="Margin.Dense"
+               Dense="true"
+               For="For"
+               Clearable="@Clearable">
+        @foreach (var row in Items)
+        {
+            <MudSelectItem Value="row">@GetDisplayText(row)</MudSelectItem>
+        }
+    </MudSelect>
+    <IconButton ToolTip="@ToolTip" Icon="@Icon" Variant=Variant.Outlined OnClick="ButtonClick"></IconButton>
+</MudStack>
+
+
+@code {
+    [Parameter]
+    public bool Clearable { get; set; } = false;
+    [Parameter]
+    public List<TValue> Items { get; set; } = new();
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public TValue Value { get; set; } = default(TValue)!;
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback ValidateAsync { get; set; }
+    [Parameter]
+    public EventCallback Change { get; set; }
+    [Parameter]
+    public Expression<Func<TValue>>? For { get; set; }
+    [Parameter]
+    public Func<TValue, string>? Property { get; set; }
+    [Parameter]
+    public EventCallback ButtonClick { get; set; }
+    [Parameter]
+    public string Icon { get; set; } = string.Empty;
+    [Parameter]
+    public string ToolTip { get; set; } = string.Empty;
+    async Task OnValueChanged(TValue value)
+    {
+        Value = value;
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+        if (ValidateAsync.HasDelegate)
+            await ValidateAsync.InvokeAsync();
+    }
+    // Método auxiliar para manejar la visualización del texto
+    private string GetDisplayText(TValue item)
+    {
+        return Property?.Invoke(item) ?? item?.ToString() ?? string.Empty;
+    }
+}

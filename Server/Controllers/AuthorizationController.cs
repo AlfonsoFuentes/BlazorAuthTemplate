@@ -7,7 +7,7 @@ using Server.Domain.Identities;
 using Server.Repositories;
 using Shared.Commons;
 using Shared.Dtos;
-using Shared.Dtos.Registrations;
+using Shared.Dtos.Requests;
 using Shared.Dtos.Responses;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.NetworkInformation;

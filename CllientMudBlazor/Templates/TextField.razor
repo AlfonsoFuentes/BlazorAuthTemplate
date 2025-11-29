@@ -1,0 +1,101 @@
+﻿
+<MudTextField Value="@Value"
+              ValueChanged="OnValueChanged"
+              T="string"
+              Lines="@Lines"
+              Label="@Label"
+              AdornmentIcon="@AdornmentIcon"
+              Adornment="@Adornment"
+              AutoGrow=@Autogrow
+              IconSize="@IconSize"
+              Placeholder="@PlaceHolder"
+              Variant="Variant.Outlined"
+              Immediate=@Immediate
+              Margin=Margin.Dense
+              InputType="@InputType"
+              Style="padding:2px"
+              Class="@Class"
+              Disabled="@Disabled"
+              For="@For">
+</MudTextField>
+
+@code {
+   
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+    [Parameter]
+    public bool Immediate { get; set; } = true;
+    [Parameter]
+    public string Class { get; set; } = string.Empty;
+    [Parameter]
+    public Size IconSize { get; set; } = Size.Medium;
+    [Parameter]
+    public string? AdornmentIcon { get; set; }
+    [Parameter]
+    public Adornment Adornment { get; set; } = Adornment.None;
+    [Parameter]
+    public InputType InputType { get; set; } = InputType.Text;
+    [Parameter]
+    public int Lines { get; set; } = 1;
+    bool Autogrow => Lines > 1;
+    [Parameter]
+    public string PlaceHolder { get; set; } = string.Empty;
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback ValidateAsync { get; set; }
+    [Parameter]
+    public EventCallback Change { get; set; }
+    [Parameter]
+    public Expression<Func<string>>? For { get; set; }
+    private CancellationTokenSource? _debounceCts;
+    private const int DebounceDelay = 500; // 500ms
+
+    async Task OnValueChanged(string value)
+    {
+        Value = value;
+
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+
+        // ✅ Cancelar validación anterior
+        _debounceCts?.Cancel();
+
+        // ✅ Solo validar si hay valor y hay delegado
+        if (ValidateAsync.HasDelegate && !string.IsNullOrWhiteSpace(value))
+        {
+            _debounceCts = new CancellationTokenSource();
+            var token = _debounceCts.Token;
+
+            try
+            {
+                // ✅ Esperar la pausa SIN bloquear la UI
+                await Task.Delay(DebounceDelay, token);
+
+                // ✅ Ejecutar validación en el contexto de Blazor
+                if (!token.IsCancellationRequested && ValidateAsync.HasDelegate)
+                {
+                    await ValidateAsync.InvokeAsync();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // ✅ Cancelación esperada → ignorar
+            }
+            catch (Exception ex)
+            {
+                // ✅ Log opcional
+                 Console.WriteLine($"Debounce error: {ex.Message}");
+            }
+        }
+    }
+
+    public void Dispose() => _debounceCts?.Cancel();
+
+}

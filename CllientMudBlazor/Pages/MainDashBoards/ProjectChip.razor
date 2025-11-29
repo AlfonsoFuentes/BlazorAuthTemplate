@@ -1,0 +1,19 @@
+﻿<MudChip T="ProjectDashboardDto"
+         Tag="@Project"
+         OnClick="HandleClick"
+         Color="@ProjectPhaseHelper.GetColor(Project.Status)"
+         Variant="Variant.Filled"
+         Size="Size.Small">
+  
+    <TruncatedText FullText="@Project.Name" MaxLength="12" Typo="Typo.body2" />
+</MudChip>
+
+@code {
+    [Parameter] public ProjectDashboardDto Project { get; set; } = new();
+
+
+   
+
+    private void HandleClick()
+        => NavManager.NavigateTo($"/projectDashboard/{Project.Id}");
+}

@@ -1,0 +1,38 @@
+﻿<MudPaper Class="mb-3" Style="position: sticky; top: 0; z-index: 10; background: white; padding: 8px 0;">
+    <MudButton StartIcon="@Icons.Material.Filled.Add"
+               Color="Color.Primary"
+               Variant="Variant.Filled"
+               FullWidth="true"
+               OnClick="CreateNewProject">
+        New Project
+    </MudButton>
+</MudPaper>
+
+
+
+<MudList T="ProjectDto" Dense="true" Class="pa-0">
+    @foreach (var project in OrderedProjects)
+    {
+        <MudListItem OnClick="() => HandleProjectClick(project)"
+                     Class="mud-selected-item"
+                     Style="border-radius: 6px; padding: 8px 12px;">
+            <AvatarContent>
+                <MudAvatar Size="Size.Small" Color="ProjectPhaseHelper.GetColor(project.Status)">
+                
+                </MudAvatar>
+            </AvatarContent>
+            <ChildContent>
+                <div>
+                    <TruncatedText FullText="@project.Name" MaxLength="25" />
+                   
+                </div>
+            </ChildContent>
+        </MudListItem>
+    }
+</MudList>
+
+
+
+@code {
+
+}

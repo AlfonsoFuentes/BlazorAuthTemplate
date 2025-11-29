@@ -1,0 +1,36 @@
+﻿<MudNumericField Immediate="true"
+                 Label="@Label"
+                 T="int"
+                 Value="@Value"
+                 Variant="Variant.Outlined"
+                 Margin="Margin.Dense"
+                 ValueChanged="OnValueChanged"
+                 For="@For"
+                 HideSpinButtons=@HideSpinButtons></MudNumericField>
+
+@code {
+    [Parameter]
+    public bool HideSpinButtons { get; set; } = true;
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public int Value { get; set; }
+    [Parameter]
+    public EventCallback<int> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback ValidateAsync { get; set; }
+    [Parameter]
+    public EventCallback Change { get; set; }
+    [Parameter]
+    public Expression<Func<int>>? For { get; set; }
+    async Task OnValueChanged(int value)
+    {
+        Value = value;
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+        if (ValidateAsync.HasDelegate)
+            await ValidateAsync.InvokeAsync();
+    }
+}

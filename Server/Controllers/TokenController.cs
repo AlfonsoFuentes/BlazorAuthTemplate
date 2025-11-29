@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Server.DataContext;
 using Server.Repositories;
-using Shared.Dtos.Registrations;
+using Shared.Dtos.Requests;
 using Shared.Dtos.Responses;
 
 namespace Server.Controllers

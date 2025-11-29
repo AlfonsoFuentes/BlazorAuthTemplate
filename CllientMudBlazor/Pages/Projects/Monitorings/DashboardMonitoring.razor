@@ -1,0 +1,33 @@
+﻿<MudGrid>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Gant Task</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Budget</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="3">
+        <MudCard>
+            <MudCardHeader>Warnings</MudCardHeader>
+            <MudCardActions>
+                <IconButton Color="Color.Primary" ToolTip="View List" Icon="@Icons.Material.Filled.List"></IconButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public EventCallback ParentGetAll { get; set; }
+}
