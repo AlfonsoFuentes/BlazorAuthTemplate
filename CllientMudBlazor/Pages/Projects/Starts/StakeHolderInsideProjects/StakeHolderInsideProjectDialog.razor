@@ -1,0 +1,128 @@
+﻿
+@* StakeHolderInsideProjectDialog.razor *@  
+@inherits ComponentBase
+
+<TemplateDialog TValue="StakeHolderInsideProjectDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <AutoCompleteIconButton @bind-Value="@ctx.Model.StakeHolderInsideProject"
+                                        TValue="StakeHolderDto"
+                                        Label="StakeHolder"
+                                        ValidateAsync="ctx.ValidateAsync"
+                                        For="()=>ctx.Model.StakeHolderInsideProject"
+                                        Clearable="true"
+                                        SearchFunc="SearchStakeHolder"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name} ")"
+                                        Icon="@Icons.Material.Filled.Add"
+                                        ButtonClick="AddStakeHolder"
+                                        ToolTip="Add new Stakeholder"
+                                        Change="ChangeStakeHolder">
+
+                </AutoCompleteIconButton>
+             
+
+            </MudItem>
+            <MudItem xs="12">
+                <Select @bind-Value="ctx.Model.Role"
+                        TValue="StakeHolderRoleEnum"
+                        ValidateAsync="ctx.ValidateAsync"
+                        Label="Role"
+                        Items=StakeHolderRoleEnum.List
+                        For="@(() => ctx.Model.Role)">
+                </Select>
+            </MudItem>
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public StakeHolderInsideProjectDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        // Solo carga si es edición
+        if (Model.StakeHolderId != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetStakeHolderInsideProjectById, GeneralDto<EditStakeHolderInsideProject>>(
+                new GetStakeHolderInsideProjectById
+                {
+                    ProjectId = Model.ProjectId,
+                    StakeHolderId = Model.StakeHolderId
+                });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model = result.Data;
+
+            }
+        }
+        await GetStakeholders();
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<StakeHolderInsideProjectDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    private Task<IEnumerable<StakeHolderDto>> SearchStakeHolder(string value, CancellationToken token)
+    {
+        Func<StakeHolderDto, bool> Criteria = x =>
+        x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+        x.Area.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+        x.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase);
+        IEnumerable<StakeHolderDto> FilteredItems = string.IsNullOrEmpty(value) ? stakeHolders.AsEnumerable() :
+            stakeHolders.Where(Criteria);
+        return Task.FromResult(FilteredItems);
+    }
+    void ChangeStakeHolder()
+    {
+        if (Model.StakeHolderInsideProject != null)
+        {
+
+
+
+        }
+
+    }
+    public async Task AddStakeHolder()
+    {
+        CreateStakeHolder dto = new();
+        var parameters = new DialogParameters<StakeHolderDialog>
+        {
+              { x => x.Model, dto},
+        };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<StakeHolderDialog>("Add StakeHolder", parameters, options);
+        var result = await dialog.Result;
+        if (result != null)
+        {
+            await GetStakeholders();
+
+        }
+    }
+    List<StakeHolderDto> stakeHolders = new();
+    async Task GetStakeholders()
+    {
+        var result = await HttpService.PostAsync<GetAllStakeHolders, GeneralDto<List<StakeHolderDto>>>(new GetAllStakeHolders());
+        if (result.Succeeded)
+        {
+            stakeHolders = result.Data;
+            StateHasChanged();
+        }
+    }
+}

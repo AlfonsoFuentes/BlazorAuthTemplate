@@ -27,7 +27,7 @@ namespace Server.EndPoints.Brands
         public void MapEndPoint(IEndpointRouteBuilder app)
         {
             // ✅ Crear
-            app.MapPost("CreateBrand", async (CreateBrand dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("CreateBrand", async (CreateBrand dto, IAppDbContext _context) =>
             {
                 var row = new Brand
                 {
@@ -39,10 +39,10 @@ namespace Server.EndPoints.Brands
                 if (result > 0)
                 {
                     var cacheKeyAll = $"{typeof(GetAllBrands).Name}";
-                    cache.InvalidateCache(cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Brand).Name} created successfully."
                     });
 
@@ -50,7 +50,7 @@ namespace Server.EndPoints.Brands
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Brand).Name} was not created successfully."
                 });
 
@@ -60,7 +60,7 @@ namespace Server.EndPoints.Brands
 
 
             // ✅ Editar
-            app.MapPost("EditBrand", async (EditBrand dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("EditBrand", async (EditBrand dto, IAppDbContext _context) =>
             {
 
 
@@ -68,7 +68,7 @@ namespace Server.EndPoints.Brands
                 if (row == null)
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = "Brand not found."
                     });
                 MapFromDto(dto, row);
@@ -77,10 +77,10 @@ namespace Server.EndPoints.Brands
                 {
                     var cacheKeyId = $"{typeof(GetBrandById).Name}-{dto.Id}";
                     var cacheKeyAll = $"{typeof(GetAllBrands).Name}";
-                    cache.InvalidateCache(cacheKeyId, cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyId, cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Brand).Name} created successfully."
                     });
 
@@ -88,17 +88,17 @@ namespace Server.EndPoints.Brands
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Brand).Name} was not created successfully."
                 });
 
             });
 
             // ✅ Obtener por ID
-            app.MapPost("GetBrandById", async (GetBrandById request, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetBrandById", async (GetBrandById request, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetBrandById).Name}-{request.Id}";
-                var row = await _cache.GetOrAddCacheAsync(async () =>
+                var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Brands
                   .AsSplitQuery()
@@ -114,7 +114,7 @@ namespace Server.EndPoints.Brands
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(Brand).Name} was not found"
                     });
                 }
@@ -122,7 +122,7 @@ namespace Server.EndPoints.Brands
                 var dto = MapToDto(row);
                 return Results.Ok(new GeneralDto<BrandDto>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Message = $"{typeof(Brand).Name} was found!",
                     Data = dto
 
@@ -131,10 +131,10 @@ namespace Server.EndPoints.Brands
             });
 
             // ✅ Obtener todos
-            app.MapPost("GetAllBrands", async (GetAllBrands dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetAllBrands", async (GetAllBrands dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllBrands).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Brands
                   .AsSplitQuery()
@@ -148,18 +148,18 @@ namespace Server.EndPoints.Brands
 
                 return Results.Ok(new GeneralDto<List<BrandDto>>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = dtos
                 });
             });
-            app.MapPost("DeleteBrand", async (DeleteBrand dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("DeleteBrand", async (DeleteBrand dto, IAppDbContext _context) =>
             {
                 var row = await _context.Brands.FindAsync(dto.Id);
                 if (row is null)
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(Brand).Name} was not found"
                     });
                 }
@@ -168,32 +168,32 @@ namespace Server.EndPoints.Brands
                 {
                     var cacheKeyId = $"{typeof(GetBrandById).Name}-{dto.Id}";
                     var cacheKeyAll = $"{typeof(GetAllBrands).Name}";
-                    cache.InvalidateCache(cacheKeyId, cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyId, cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Brand).Name} was deleted"
                     });
                 }
 
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Brand).Name} was not deleted"
                 });
             });
 
             //// ✅ Eliminar varios
-            //app.MapPost("DeleteGroupBrand", async (DeleteGroupBrand dto, IAppDbContext _context, ICache cache) =>
+            //app.MapPost("DeleteGroupBrand", async (DeleteGroupBrand dto, IAppDbContext _context) =>
             //{
             //    return Results.Ok(await service.DeleteRangeAsync<Brand>(dto.GroupIds));
             //});
 
             // ✅ Validar nombre único
-            app.MapPost("ValidateBrandName", async (ValidateBrandName dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ValidateBrandName", async (ValidateBrandName dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllBrands).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Brands
                   .AsSplitQuery()
@@ -209,7 +209,7 @@ namespace Server.EndPoints.Brands
 
                 return new GeneralDto<bool>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = isUnique,
                     Message = isUnique ? "Name is available." : "Name already in use."
                 };

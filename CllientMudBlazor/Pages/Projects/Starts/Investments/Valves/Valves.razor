@@ -1,0 +1,65 @@
+﻿@using Shared.Dtos.Starts.Valves
+@using Shared.Enums.CostCenter
+<MudDataGrid @ref="_elementGrid" T="ValveDto" Items="@_elements"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column">
+    <ToolBarContent>
+        <MudText Typo="Typo.button" HtmlTag="h3">@Title</MudText>
+        <MudSpacer />
+        <IconButton Color="Color.Primary"
+                    ToolTip="@($"Add {Title}")"
+                    Size="Size.Small" Disabled="@DisableAddEdit"
+                    Icon="@Icons.Material.Filled.Add" OnClick="Add" />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nomenclatore" Title="#" />
+
+        <PropertyColumn Property="x => x.Name">
+
+        </PropertyColumn>
+
+        <PropertyColumn Property="x => x.BudgetUSD" Title="Budget, USD" Format="C0" Culture="@(new CultureInfo("en-US"))">
+            <FooterTemplate>
+                <strong>@_elements.Sum(x => x.BudgetUSD).ToCurrencyCulture()</strong>
+            </FooterTemplate>
+        </PropertyColumn>
+
+
+        <TemplateColumn CellClass="d-flex justify-between">
+            <CellTemplate>
+                <IconButton ToolTip="@($"Order Up {context.Item.Name}")"
+                            Color="Color.Info"
+                            Disabled="@(context.Item.Order == MinOrder||DisableAddEdit)"
+                            OnClick="() => OrderUp(context.Item)"
+                            Variant="Variant.Outlined"
+                            Icon="@Icons.Material.Outlined.ArrowUpward" />
+
+                <IconButton ToolTip="@($"Order Down {context.Item.Name}")"
+                            Color="Color.Info"
+                            OnClick="() => OrderDown(context.Item)"
+                            Variant="Variant.Outlined"
+                            Disabled="@(context.Item.Order == MaxOrder||DisableAddEdit)"
+                            Icon="@Icons.Material.Outlined.ArrowDownward" />
+
+                <IconButton ToolTip="@($"Edit {context.Item.Name}")"
+                            Color="Color.Success"
+                            Size="Size.Small"
+                            OnClick="@(() => Edit(context.Item))" Disabled="@DisableAddEdit"
+                            Variant="Variant.Outlined"
+                            Icon="@Icons.Material.Outlined.Edit" />
+                <IconButton ToolTip="@($"Delete {context.Item.Name}")"
+                            Color="Color.Warning"
+                            OnClick="@(() => Delete(context.Item))" Disabled="@DisableAddEdit"
+                            Variant="Variant.Outlined"
+                            Size="Size.Small"
+                            Icon="@Icons.Material.Outlined.DeleteForever" />
+            </CellTemplate>
+
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+}

@@ -1,0 +1,59 @@
+﻿<MudPaper Elevation="1" Class="pa-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h5">Investment</MudText>
+        <MudSpacer />
+
+        <IconButton Color="Color.Secondary"
+                    ToolTip="Go Up"
+                    Icon="@Icons.Material.Filled.Upcoming"
+                    OnClick="HideTable" />
+    </MudStack>
+    
+    <MudStack>
+        <Alterations _elements="InvestmentDto.Alterations" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Alterations>
+        <Foundations _elements="InvestmentDto.Foundations" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Foundations>
+        <Structurals _elements="InvestmentDto.Structurals" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Structurals>
+        <Equipments _elements="InvestmentDto.Equipments" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Equipments>
+        <Valves _elements="InvestmentDto.Valves" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Valves>
+        <Electricals _elements="InvestmentDto.Electricals" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Electricals>
+        <Instruments _elements="InvestmentDto.Instruments" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Instruments>
+        <Pipes _elements="InvestmentDto.Pipes" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Pipes>
+        <Paintings _elements="InvestmentDto.Paintings" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Paintings>
+        <EHSs _elements="InvestmentDto.EHSs" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></EHSs>
+        <Taxs _elements="InvestmentDto.Taxes" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Taxs>
+        <Testings _elements="InvestmentDto.Testings" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Testings>
+        <EngineeringDesigns _elements="InvestmentDto.EngineeringDesigns" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></EngineeringDesigns>
+        <Engineerings _elements="InvestmentDto.EngineeringSalarys" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Engineerings>
+        <Contingencys _elements="InvestmentDto.Contingencies" ProjectId="ProjectId" RefresInvestmentData="RefreshInvestmentData" DisableAddEdit="DisableAddEdit"></Contingencys>
+
+
+    </MudStack>
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+    [Parameter]
+    public EventCallback HideTable { get; set; }
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+    InvestmentDto InvestmentDto = new InvestmentDto();
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshInvestmentData();
+
+    }
+    async Task RefreshInvestmentData()
+    {
+        var result = await HttpService.PostAsync<GetInvestmentById, GeneralDto<InvestmentDto>>(new GetInvestmentById() { Id = ProjectId });
+        if (result.Succeeded)
+        {
+            InvestmentDto = result.Data;
+        }
+    }
+}

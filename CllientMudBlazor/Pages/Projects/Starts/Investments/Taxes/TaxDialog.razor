@@ -1,0 +1,69 @@
+﻿@using Shared.Dtos.Starts.Taxs
+@* TaxDialog.razor *@  
+@inherits ComponentBase
+
+<TemplateDialog TValue="TaxDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                
+                <Field Label="Name">
+                    @ctx.Model.Name
+                </Field>
+            </MudItem>
+             <MudItem xs="12">
+                <DoubleNumericField @bind-Value="@ctx.Model.Percentage"
+                           Label="Percentage"
+                           
+                           ValidateAsync="ctx.ValidateAsync"
+                           For="()=>ctx.Model.Percentage">
+                </DoubleNumericField>
+            </MudItem>
+            <MudItem xs="12">
+                <Field Typo="Typo.body2" Label="Budget, USD">@ctx.Model.BudgetUSD.ToCurrencyCulture()</Field>
+                <ValidationMessage For="() => ctx.Model.BudgetUSD" style="color:red; font-size:x-small;" />
+            </MudItem>
+            
+          
+
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public TaxDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Solo carga si es edición
+        if (Model.Id != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetTaxById, GeneralDto<EditTax>>(
+                new GetTaxById { Id = Model.Id });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model = result.Data;
+
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<TaxDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

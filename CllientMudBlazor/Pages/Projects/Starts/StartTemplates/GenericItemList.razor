@@ -1,0 +1,117 @@
+﻿@typeparam TItem
+
+<MudPaper Elevation="1" Class="pa-4">
+    <!-- ✅ Encabezado con acciones -->
+    <MudStack Spacing="2">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">@Title</MudText>
+            <MudSpacer />
+
+            @if (Add.HasDelegate)
+            {
+                <IconButton Color="Color.Primary"
+                            ToolTip="@($"Add {Title}")"
+                            Icon="@Icons.Material.Filled.Add"
+                            Disabled="@DisableAdd"
+                            OnClick="Add" />
+            }
+
+            @if (HideTable.HasDelegate)
+            {
+                <IconButton Color="Color.Secondary"
+                            ToolTip="Go Up"
+                            Icon="@Icons.Material.Filled.Upcoming"
+                            OnClick="HideTable" />
+            }
+        </MudStack>
+
+        <!-- ✅ Filtro de búsqueda (opcional) -->
+        @if (EnableSearch)
+        {
+            <MudTextField T="string"
+                          Value="@NameFilter"
+                          ValueChanged="@OnNameFilterChanged"
+                          DebounceInterval="500"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Variant="Variant.Outlined"
+                         
+                          Class="mt-0" />
+        }
+    </MudStack>
+
+    <MudDivider Class="my-4" />
+
+    <!-- ✅ Grid de tarjetas -->
+    @if (FilteredItems == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-block mx-auto my-8" />
+    }
+    else if (FilteredItems.Count == 0)
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info" Class="text-center">
+                No @Title.ToLower() found.
+                @if (Add.HasDelegate)
+                {
+                    @(" Click \"Add ")
+                    @Title
+                    @("\" to get started.")
+                }
+            </MudAlert>
+        </MudItem>
+    }
+    else
+    {
+        <MudGrid Spacing="2">
+            @foreach (var item in FilteredItems)
+            {
+                <MudItem xs="12" sm="12">
+                    <MudCard Class="cursor-pointer" Elevation="1">
+                        <MudCardHeader>
+                            @CardHeader?.Invoke(item)
+                        </MudCardHeader>
+
+                        <MudCardContent>
+                            @CardContent?.Invoke(item)
+                        </MudCardContent>
+
+                        <MudCardActions>
+                            @CardActions?.Invoke(item)
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    // 🔹 El padre debe proveer la lista ya filtrada/ordenada
+    [Parameter, EditorRequired] public List<TItem>? FilteredItems { get; set; }
+
+    // 🔹 Búsqueda (el padre puede ignorarla si no aplica)
+    [Parameter] public bool EnableSearch { get; set; } = true;
+    [Parameter] public string NameFilter { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> NameFilterChanged { get; set; }
+
+    // 🔹 Renderado personalizable
+    [Parameter] public RenderFragment<TItem>? CardHeader { get; set; }
+    [Parameter] public RenderFragment<TItem>? CardContent { get; set; }
+    [Parameter] public RenderFragment<TItem>? CardActions { get; set; }
+
+    // 🔹 Eventos
+    [Parameter] public EventCallback Add { get; set; }
+    [Parameter] public EventCallback HideTable { get; set; }
+    [Parameter] public bool DisableAdd { get; set; } = false;
+
+    async Task OnNameFilterChanged(string value)
+    {
+        NameFilter = value;
+        if (NameFilterChanged.HasDelegate)
+            await NameFilterChanged.InvokeAsync(NameFilter);
+    }
+}

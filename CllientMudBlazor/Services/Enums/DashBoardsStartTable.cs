@@ -10,7 +10,7 @@
         StakeHolders,
 
         [Description("Background")]
-        Backgrounds,
+        BackGrounds,
 
         [Description("Objectives")]
         Objectives,

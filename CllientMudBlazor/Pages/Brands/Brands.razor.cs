@@ -29,7 +29,7 @@ namespace CllientMudBlazor.Pages.Brands
         async Task GetAll()
         {
             var result = await HttpService.PostAsync<GetAllBrands, GeneralDto<List<BrandDto>>>(new GetAllBrands());
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
                 Items = result.Data;
                 StateHasChanged();
@@ -94,7 +94,7 @@ namespace CllientMudBlazor.Pages.Brands
 
                 };
                 var resultDelete = await HttpService.PostAsync<DeleteBrand, GeneralDto>(request);
-                if (resultDelete.Suceeded)
+                if (resultDelete.Succeeded)
                 {
                     await GetAll();
 

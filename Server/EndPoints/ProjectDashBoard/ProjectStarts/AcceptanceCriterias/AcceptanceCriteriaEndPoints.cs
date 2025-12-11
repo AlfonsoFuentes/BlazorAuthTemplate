@@ -1,9 +1,11 @@
 ﻿using Server.DataContext;
 using Server.Interfaces.EndPoints;
 using Server.Services;
+using Server.Services.Repositories;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Dtos.Starts.AcceptanceCriterias;
+using Shared.Dtos.Starts.ExpertJudgements;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 {
 
@@ -28,7 +30,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
         public void MapEndPoint(IEndpointRouteBuilder app)
         {
             // ✅ Crear
-            app.MapPost("CreateAcceptanceCriteria", async (CreateAcceptanceCriteria dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("CreateAcceptanceCriteria", async (CreateAcceptanceCriteria dto, IAppDbContext _context, IRepositoryGetNextOrder getNextOrder) =>
             {
                 var row = new AcceptanceCriteria
                 {
@@ -43,38 +45,28 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
                     project.LastModifiedOn = DateTime.UtcNow;
 
                 var cacheKeyAll = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
-                {
-                    return await _context.AcceptanceCriterias
-                  .AsSplitQuery()
-                  .AsNoTracking()
-                  .AsQueryable()
-                  .Where(x => x.ProjectId == dto.ProjectId)
-                  .OrderBy(x => x.Order)
-                  .ToListAsync();
+               
 
-                }, cacheKeyAll);
-
-                var maxOrder = rows!.Max(x => x.Order) + 1;
+                var maxOrder = await getNextOrder.GetNextOrderAsync<AcceptanceCriteria>(cacheKeyAll, dto.ProjectId);
                 row.Order = maxOrder;
 
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-
+                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
                     var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeycacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
+                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
 
-                    _cache.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeycacheKeyProjectDashBoardsById);
+                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(AcceptanceCriteria).Name} created successfully."
                     });
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Message = $"{typeof(AcceptanceCriteria).Name} was not created successfully."
                 });
 
@@ -83,27 +75,28 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 
 
             // ✅ Editar
-            app.MapPost("EditAcceptanceCriteria", async (EditAcceptanceCriteria dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("EditAcceptanceCriteria", async (EditAcceptanceCriteria dto, IAppDbContext _context) =>
             {
                 var row = await _context.AcceptanceCriterias.FindAsync(dto.Id);
                 if (row == null)
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = "Acceptance Criteria not found."
                     });
                 MapFromDto(dto, row);
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
+                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
                     var cacheKeyId = $"{typeof(GetAcceptanceCriteriaById).Name}-{dto.Id}";
                     var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
                     var cacheKeyAll = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
-                    var cacheKeycacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _cache.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeycacheKeyProjectDashBoardsById);
+                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
+                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(AcceptanceCriteria).Name} Updated successfully."
                     });
 
@@ -111,7 +104,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(AcceptanceCriteria).Name} was not Updated successfully."
                 });
 
@@ -119,13 +112,24 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
             });
 
             // ✅ Obtener por ID
-            app.MapPost("GetAcceptanceCriteriaById", async (GetAcceptanceCriteriaById request, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetAcceptanceCriteriaById", async (GetAcceptanceCriteriaById request, IAppDbContext _context) =>
             {
-                var row = await _context.AcceptanceCriterias.FindAsync(request.Id);
+                var cacheKey = $"{typeof(GetAcceptanceCriteriaById).Name}-{request.Id}";
+                var row = await _context.GetOrAddCacheAsync(async () =>
+                {
+                    return await _context.AcceptanceCriterias
+                    
+                  .AsSplitQuery()
+                  .AsNoTracking()
+                  .AsQueryable()
+                  .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+                }, cacheKey);
+           
                 if (row == null)
                     return Results.Ok(new GeneralDto<AcceptanceCriteriaDto>
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = "Acceptance Criteria not found."
                     });
 
@@ -133,16 +137,16 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 
                 return Results.Ok(new GeneralDto<AcceptanceCriteriaDto>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = dto
                 });
             });
 
             // ✅ Obtener todos
-            app.MapPost("GetAllAcceptanceCriterias", async (GetAllAcceptanceCriterias dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetAllAcceptanceCriterias", async (GetAllAcceptanceCriterias dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.AcceptanceCriterias
                   .AsSplitQuery()
@@ -159,18 +163,18 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 
                 return Results.Ok(new GeneralDto<List<AcceptanceCriteriaDto>>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = dtos
                 });
             });
-            app.MapPost("DeleteAcceptanceCriteria", async (DeleteAcceptanceCriteria dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("DeleteAcceptanceCriteria", async (DeleteAcceptanceCriteria dto, IAppDbContext _context) =>
             {
                 var row = await _context.AcceptanceCriterias.FindAsync(dto.Id);
                 if (row is null)
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(AcceptanceCriteria).Name} was not found"
                     });
                 }
@@ -185,31 +189,31 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
                         i++;
                     }
                     await _context.SaveChangesAsync();
-
+                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
                     var cacheKeyAll = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
                     var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeycacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    cache.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeycacheKeyProjectDashBoardsById);
+                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
+                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(AcceptanceCriteria).Name} was deleted"
                     });
                 }
 
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(AcceptanceCriteria).Name} was not deleted"
                 });
             });
 
 
             // ✅ Validar nombre único
-            app.MapPost("ValidateAcceptanceCriteriaName", async (ValidateAcceptanceCriteriaName dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ValidateAcceptanceCriteriaName", async (ValidateAcceptanceCriteriaName dto, IAppDbContext _context) =>
             {
                 var cacheKeyAll = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.AcceptanceCriterias
                   .AsSplitQuery()
@@ -225,19 +229,19 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 
                 return new GeneralDto<bool>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = isUnique,
                     Message = isUnique ? "Name is available." : "Name already in use."
                 };
             });
-            app.MapPost("ChangeOrderAcceptanceCriteria", async (ChangeOrderAcceptanceCriteria dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ChangeOrderAcceptanceCriteria", async (ChangeOrderAcceptanceCriteria dto, IAppDbContext _context) =>
             {
                 var CurrentRow = await _context.AcceptanceCriterias.FindAsync(dto.Id);
                 if (CurrentRow == null)
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(AcceptanceCriteria).Name} was not found"
                     });
 
@@ -248,7 +252,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(AcceptanceCriteria).Name} was not found"
                     });
 
@@ -261,16 +265,16 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.AcceptanceCriterias
 
                     var cacheKeyAll = $"{typeof(GetAllAcceptanceCriterias).Name}{dto.ProjectId}";
 
-                    _cache.InvalidateCache(cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(AcceptanceCriteria).Name} was reorder"
                     });
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(AcceptanceCriteria).Name} was not reorder"
                 });
             });

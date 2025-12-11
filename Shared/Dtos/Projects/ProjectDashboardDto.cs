@@ -1,4 +1,6 @@
-﻿using Shared.Enums.ProjectNeedTypes;
+﻿using Shared.Enums.CostCenter;
+using Shared.Enums.Focuses;
+using Shared.Enums.ProjectNeedTypes;
 
 namespace Shared.Dtos.Projects
 {
@@ -30,4 +32,5 @@ namespace Shared.Dtos.Projects
     {
         public Guid Id { set; get; }
     }
+    
 }

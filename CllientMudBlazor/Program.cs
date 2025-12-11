@@ -1,7 +1,9 @@
+using BlazorDownloadFile;
 using Blazored.LocalStorage;
 using CllientMudBlazor;
 using CllientMudBlazor.Services;
 using CllientMudBlazor.Services.HttPServives;
+using CllientMudBlazor.Services.NotificationServices;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -36,4 +38,6 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+builder.Services.AddSingleton<ProjectNotificationService>();
+builder.Services.AddBlazorDownloadFile();
 await builder.Build().RunAsync();

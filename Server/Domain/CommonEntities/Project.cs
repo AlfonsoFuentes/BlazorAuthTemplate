@@ -15,6 +15,7 @@ namespace Server.Domain.CommonEntities
         public string TenantId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
 
+        public override bool IsTennanted => true;
 
         public DateTime? StartDate { get; set; }
 
@@ -119,6 +120,9 @@ namespace Server.Domain.CommonEntities
         public List<BudgetItem> Capital => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
             ..Pipings,..Instruments,..EHSs,..Paintings,..Taxes,..Testings,..EngineeringDesigns];
         [NotMapped]
+        public List<BudgetItem> CapitalWOTaxes => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
+            ..Pipings,..Instruments,..EHSs,..Paintings,..Testings,..EngineeringDesigns];
+        [NotMapped]
         public List<BudgetItem> CapitalPlusContingencies => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
             ..Pipings,..Instruments,..EHSs,..Paintings,..Taxes,..Testings,..EngineeringDesigns, .. EngineeringContingencys];
         [NotMapped]
@@ -127,6 +131,8 @@ namespace Server.Domain.CommonEntities
         public List<BudgetItem> Appropiation => [.. Expenses, .. Capital, .. EngineeringContingencys];
         [NotMapped]
         public double CapitalBudgetUSD => Capital == null || Capital.Count == 0 ? 0 : Capital.Sum(x => x.BudgetUSD);
+        [NotMapped]
+        public double CapitalWOTaxesBudgetUSD => CapitalWOTaxes == null || CapitalWOTaxes.Count == 0 ? 0 : CapitalWOTaxes.Sum(x => x.BudgetUSD);
         [NotMapped]
         public double ExpensesBudgetUSD => Expenses == null || Expenses.Count == 0 ? 0 : Expenses.Sum(x => x.BudgetUSD);
         [NotMapped]

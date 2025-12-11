@@ -1,5 +1,7 @@
 ﻿@page "/projectDashboard/{Id:guid}"
+@implements IDisposable
 @using CllientMudBlazor.Pages.MainDashBoards
+@using CllientMudBlazor.Pages.Projects.Starts.StartTemplates
 <MudPaper Elevation="1" Class="pa-4">
     <!-- ✅ Encabezado del proyecto -->
     <div class="d-flex align-items-center mb-4">
@@ -81,7 +83,7 @@
                 @switch (SelectedPhase)
                 {
                     case 1:
-                        <DashboardStart ProjectId="_selectedProject.Id" />
+                        <DashboardStart ProjectId="_selectedProject.Id" DisableButtonsAddEdit="DisableButtonsStart" />
                         break;
                     case 2:
                         <DashboardPlanning  />

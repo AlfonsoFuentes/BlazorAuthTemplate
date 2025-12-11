@@ -76,10 +76,13 @@ namespace Server.DataContext
         DbSet<PurchaseOrder> PurchaseOrders { get; set; } 
         DbSet<Supplier> Suppliers { get; set; } 
         DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; } 
-        DbSet<PurchaseOrderItemReceived> PurchaseOrderItemReceiveds { get; set; } 
+        DbSet<PurchaseOrderItemReceived> PurchaseOrderItemReceiveds { get; set; }
         //DbSet<BasicEquipmentItem> BasicEquipmentItems { get; set; } 
         //DbSet<BasicInstrumentItem> BasicInstrumentItems { get; set; } 
         //DbSet<BasicValveItem> BasicValveItems { get; set; } 
         //DbSet<BasicPipeItem> BasicPipeItems { get; set; } 
+
+        Task<T?> GetOrAddCacheAsync<T>(Func<Task<T?>> addItemFactory, string key, bool IsTenanted = false) where T : class; // T sigue siendo class, pero el resultado puede ser null
+        void InvalidateCache(params string[] types);
     }
 }

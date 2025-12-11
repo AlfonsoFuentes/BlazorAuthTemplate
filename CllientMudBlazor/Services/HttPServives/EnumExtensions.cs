@@ -21,5 +21,9 @@ namespace CllientMudBlazor.Services.HttPServives
             var attribute = field?.GetCustomAttribute<DescriptionAttribute>();
             return attribute?.Description ?? value.ToString().Replace('_', ' ');
         }
+        public static string ToCurrencyCulture(this double str)
+        {
+            return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:C0}", str);
+        }
     }
 }

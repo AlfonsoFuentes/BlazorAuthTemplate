@@ -33,7 +33,7 @@ namespace CllientMudBlazor.Pages.Suppliers
         async Task GetAll()
         {
             var result = await HttpService.PostAsync<GetAllSuppliers, GeneralDto<List<SupplierDto>>>(new GetAllSuppliers());
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
                 Items = result.Data;
                 StateHasChanged();
@@ -98,7 +98,7 @@ namespace CllientMudBlazor.Pages.Suppliers
 
                 };
                 var resultDelete = await HttpService.PostAsync<DeleteSupplier, GeneralDto>(request);
-                if (resultDelete.Suceeded)
+                if (resultDelete.Succeeded)
                 {
                     await GetAll();
 

@@ -1,0 +1,45 @@
+﻿@using Shared.Dtos.Starts.Engineerings
+@using Shared.Enums.CostCenter
+<MudDataGrid @ref="_elementGrid" T="EngineeringSalarysDto" Items="@_elements"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column">
+    <ToolBarContent>
+        <MudText Typo="Typo.button" HtmlTag="h3">@Title</MudText>
+        <MudSpacer />
+
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nomenclatore" Title="#" />
+
+        <PropertyColumn Property="x => x.Name">
+
+        </PropertyColumn>
+
+        <PropertyColumn Property="x => x.BudgetUSD" Title="Budget, USD" Format="C0" Culture="@(new CultureInfo("en-US"))">
+            <FooterTemplate>
+                <strong>@_elements.Sum(x => x.BudgetUSD).ToCurrencyCulture()</strong>
+            </FooterTemplate>
+        </PropertyColumn>
+
+
+        <TemplateColumn CellClass="d-flex justify-between">
+            <CellTemplate>
+
+
+                <IconButton ToolTip="@($"Edit {context.Item.Name}")"
+                            Color="Color.Success"
+                            Size="Size.Small" Disabled="@(DisableAddEdit)"
+                            OnClick="@(() => Edit(context.Item))"
+                            Variant="Variant.Outlined"
+                            Icon="@Icons.Material.Outlined.Edit" />
+
+            </CellTemplate>
+
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+  [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+}

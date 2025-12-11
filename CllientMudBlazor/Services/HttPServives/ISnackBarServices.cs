@@ -25,7 +25,7 @@ namespace CllientMudBlazor.Services.HttPServives
 
         public void ShowMessage(GeneralDto result)
         {
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
                
                 ShowSuccess(result.Message);

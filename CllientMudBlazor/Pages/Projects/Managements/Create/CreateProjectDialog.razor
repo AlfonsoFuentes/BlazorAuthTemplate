@@ -1,0 +1,93 @@
+﻿@using Shared.Enums.CostCenter
+@using Shared.Enums.Focuses
+<EditForm Model="@Model" OnValidSubmit="Submit">
+    <MudCard>
+        <MudCardContent>
+
+            <FluentValidationValidator @ref="_fluentValidationValidator" />
+            <MudGrid>
+                <MudItem xs="12" sm="12">
+                    <TextField @bind-Value="@Model.ProjectName"
+                               Label="Name"
+                               Lines="2"
+                               ValidateAsync="ValidateAsync"
+                               For="()=>Model.ProjectName">
+                    </TextField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <Select @bind-Value="Model.Focus"
+                            TValue="FocusEnum"
+                            Label="Focus"
+                            Items="FocusEnum.List"
+                            For="()=>Model.Focus"
+                            ValidateAsync="ValidateAsync"
+                            Clearable="false">
+                    </Select>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <Select @bind-Value="Model.CostCenter"
+                            TValue="CostCenterEnum"
+                            Label="Cost Center"
+                            Items="CostCenterEnum.List"
+                            For="()=>Model.CostCenter"
+                            ValidateAsync="ValidateAsync"
+                            Clearable="false">
+                    </Select>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <Select @bind-Value="Model.ProjectNeedType"
+                            TValue="ProjectNeedTypeEnum"
+                            Label="Project Need"
+                            Items="ProjectNeedTypeEnum.List"
+                            For="()=>Model.ProjectNeedType"
+                            ValidateAsync="ValidateAsync"
+                            Clearable="false">
+                    </Select>
+                </MudItem>
+               
+
+                <MudItem xs="12" sm="6">
+                    <DoubleNumericField Label="%Engineering"
+                                        ValidateAsync="ValidateAsync"
+                                        @bind-Value="Model.PercentageEngineering"
+                                        For="()=>Model.PercentageEngineering" />
+
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <DoubleNumericField Label="%Contingency"
+                                        ValidateAsync="ValidateAsync"
+                                        @bind-Value="Model.PercentageContingency"
+                                        For="()=>Model.PercentageContingency" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <Switch @bind-Value="@Model.IsProductiveAsset" Label="Is Productive Asset?" ValidateAsync="ValidateAsync" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    @if (!Model.IsProductiveAsset)
+                    {
+                        <DoubleNumericField Label="%VAT"
+                                            HideSpinButtons="true"
+                                            ValidateAsync="ValidateAsync"
+                                            @bind-Value="Model.PercentageTaxProductive"
+                                            For="()=>Model.PercentageTaxProductive" />
+                    }
+
+                </MudItem>
+
+            </MudGrid>
+
+
+        </MudCardContent>
+        <MudCardActions>
+
+            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!Validated ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
+
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+
+}

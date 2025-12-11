@@ -1,0 +1,71 @@
+﻿@* TemplateDialog.razor *@  
+@typeparam TValue
+
+<EditForm Model="@Model" OnValidSubmit="Submit">
+    <FluentValidationValidator @ref="_validator" />
+    @* <ValidationSummary /> *@
+
+    <MudCard Class="pa-0">
+        <MudCardContent Class="pt-0">
+            @Content?.Invoke(new TemplateDialogContext(this, Model))
+        </MudCardContent>
+
+        <MudCardActions>
+            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!IsValid ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter, EditorRequired] public TValue Model { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment<TemplateDialogContext>? Content { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSubmit { get; set; }
+
+    private FluentValidationValidator? _validator;
+    private bool IsValid => _validator?.Validate(options => options.IncludeAllRuleSets()) ?? false;
+
+    public class TemplateDialogContext
+    {
+        public TemplateDialog<TValue> Dialog { get; }
+        public TValue Model { get; }
+
+        public TemplateDialogContext(TemplateDialog<TValue> dialog, TValue model)
+        {
+            Dialog = dialog;
+            Model = model;
+        }
+
+        public Task<bool> ValidateAsync() => Dialog.RunFieldValidationAsync();
+    }
+
+    private async Task<bool> RunFieldValidationAsync()
+    {
+        if (_validator == null) return false;
+
+        var result = await _validator.ValidateAsync(options =>
+        {
+            options.IncludeAllRuleSets();
+        });
+
+        StateHasChanged();
+        return result;
+    }
+
+    private async Task Submit()
+    {
+        if (!await RunFieldValidationAsync()) return;
+        if (OnSubmit.HasDelegate) await OnSubmit.InvokeAsync();
+    }
+
+    private async Task Cancel()
+    {
+        if (OnCancel.HasDelegate) await OnCancel.InvokeAsync();
+        else MudDialog?.Cancel();
+    }
+}
+
+

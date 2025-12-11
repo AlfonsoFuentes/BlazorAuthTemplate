@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Shared.Dtos.General;
-using Shared.Dtos.Starts.AcceptanceCriterias;
+using Shared.Dtos.StakeHolders;
 
-namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
+namespace CllientMudBlazor.Pages.StakeHolders
 {
-    public partial class AcceptanceCriteriaDialog
+    public partial class StakeHolderDialog
     {
         [CascadingParameter]
         private IMudDialogInstance MudDialog { get; set; } = null!;
@@ -21,8 +21,8 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
         protected override async Task OnInitializedAsync()
         {
             if (Model.Id == Guid.Empty) return;
-            var result = await HttpService.PostAsync<GetAcceptanceCriteriaById, GeneralDto<EditAcceptanceCriteria>>(new GetAcceptanceCriteriaById { Id = Model.Id });
-            if (result.Suceeded)
+            var result = await HttpService.PostAsync<GetStakeHolderById, GeneralDto<EditStakeHolder>>(new GetStakeHolderById { Id = Model.Id });
+            if (result.Succeeded)
             {
                 Model = result.Data;
             }
@@ -31,11 +31,11 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
         private async Task Submit()
         {
             GeneralDto result = new();
-            result = await HttpService.PostAsync<AcceptanceCriteriaDto, GeneralDto>(Model);
+            result = await HttpService.PostAsync<StakeHolderDto, GeneralDto>(Model);
 
 
 
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
 
                 MudDialog.Close(DialogResult.Ok(true));
@@ -48,6 +48,6 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
         private void Cancel() => MudDialog.Cancel();
 
         [Parameter]
-        public AcceptanceCriteriaDto Model { get; set; } = new();
+        public StakeHolderDto Model { get; set; } = new();
     }
 }

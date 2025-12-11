@@ -22,7 +22,7 @@ namespace CllientMudBlazor.Pages.Brands
         {
             if (Model.Id == Guid.Empty) return;
             var result = await HttpService.PostAsync<GetBrandById, GeneralDto<EditBrand>>(new GetBrandById { Id = Model.Id });
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
                 Model = result.Data;
             }
@@ -35,7 +35,7 @@ namespace CllientMudBlazor.Pages.Brands
 
 
 
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
 
                 MudDialog.Close(DialogResult.Ok(true));

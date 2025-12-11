@@ -1,0 +1,69 @@
+﻿/* ==============================================
+   INVESTMENT TABLE — Scoped CSS (Alfonso)
+   Solo afecta a InvestmentTable.razor
+   ============================================== */
+
+.mud-table-root {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+colgroup col:first-child {
+    width: 70px !important;
+}
+
+colgroup col:nth-child(2) {
+    width: auto !important;
+}
+
+colgroup col:last-child {
+    width: 120px !important;
+}
+
+/* Celdas — truncado y alineación */
+.investment-cell-nomenclature,
+.investment-cell-budget,
+.investment-cell-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding: 4px 8px !important;
+}
+
+.investment-cell-nomenclature {
+    text-align: center !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+}
+
+.investment-cell-name {
+    text-align: left !important;
+}
+
+.investment-cell-budget {
+    text-align: right !important;
+    font-family: 'Segoe UI', monospace !important;
+    padding-right: 12px !important;
+}
+
+/* Subtotal — ¡negrita y fondo diferenciado! */
+.investment-subtotal-row .mud-table-cell {
+    font-weight: 600 !important;
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.12) !important;
+    padding: 6px 8px !important;
+}
+
+.investment-subtotal-label {
+    text-align: right !important;
+    padding-right: 12px !important;
+}
+
+/* Header */
+.mud-table-head .mud-table-cell {
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    color: rgba(0, 0, 0, 0.7) !important;
+    background-color: rgba(0, 0, 0, 0.02) !important;
+}

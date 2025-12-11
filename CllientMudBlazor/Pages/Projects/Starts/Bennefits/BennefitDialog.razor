@@ -1,0 +1,58 @@
+﻿
+@* BennefitDialog.razor *@  
+@inherits ComponentBase
+
+<TemplateDialog TValue="BennefitDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)">
+                </TextField>
+
+            </MudItem>
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public BennefitDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Solo carga si es edición
+        if (Model.Id != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetBennefitById, GeneralDto<EditBennefit>>(
+                new GetBennefitById { Id = Model.Id });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model.Name = result.Data.Name;
+                Model.Order = result.Data.Order;
+                // Si tu EditBennefit tiene más props, asigna aquí
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<BennefitDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

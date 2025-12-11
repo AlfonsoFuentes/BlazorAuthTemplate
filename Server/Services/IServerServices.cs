@@ -162,7 +162,7 @@ namespace Server.Services
     //        where T : class, IEntity
     //    {
     //        var cacheKey = $"ById-{typeof(T).Name}-{id}";
-    //        return await _cache.GetOrAddCacheAsync(async () =>
+    //        return await _context.GetOrAddCacheAsync(async () =>
     //        {
     //            var query = BuildQuery(
     //                _context.Set<T>().AsNoTracking().AsSplitQuery(),
@@ -197,7 +197,7 @@ namespace Server.Services
     //            return result;
     //        };
 
-    //        var result = await _cache.GetOrAddCacheAsync(factory, cacheKey);
+    //        var result = await _context.GetOrAddCacheAsync(factory, cacheKey);
     //        return result!; // ✅ ahora sí el ! es válido y el warning desaparece
     //    }
 
@@ -220,7 +220,7 @@ namespace Server.Services
     //    public void InvalidateCache(params string[] additionalTypes)
     //    {
            
-    //        _cache.InvalidateCache(additionalTypes);
+    //        _context.InvalidateCache(additionalTypes);
     //    }
     //    // ======================
     //    // ✅ REORDENAMIENTO

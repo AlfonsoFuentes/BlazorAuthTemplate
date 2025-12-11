@@ -1,13 +1,13 @@
-﻿using Azure.Core;
-using Server.DataContext;
+﻿using Server.DataContext;
 using Server.Domain.CommonEntities;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams;
+using Server.Domain.CommonEntities.BudgetItems.EngineeringContingency;
 using Server.Interfaces.EndPoints;
 using Server.Services;
 using Shared.Dtos.Brands;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
-using Shared.Dtos.Suppliers;
+using Shared.Enums.ProjectNeedTypes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Server.EndPoints.ProjectDashBoard
 {
@@ -25,10 +25,10 @@ namespace Server.EndPoints.ProjectDashBoard
         }
         public void MapEndPoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("GetAllProjectDashBoards", async (GetAllProjectDashBoards dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetAllProjectDashBoards", async (GetAllProjectDashBoards dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllProjectDashBoards).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Projects
                   .AsSplitQuery()
@@ -42,14 +42,14 @@ namespace Server.EndPoints.ProjectDashBoard
 
                 return Results.Ok(new GeneralDto<List<ProjectDashboardDto>>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = dtos
                 });
             });
-            app.MapPost("GetProjectDashBoardById", async (GetProjectDashBoardById request, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetProjectDashBoardById", async (GetProjectDashBoardById request, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetProjectDashBoardById).Name}-{request.Id}";
-                var row = await _cache.GetOrAddCacheAsync(async () =>
+                var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Projects
                   .AsSplitQuery()
@@ -65,7 +65,7 @@ namespace Server.EndPoints.ProjectDashBoard
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(Project).Name} was not found"
                     });
                 }
@@ -73,13 +73,14 @@ namespace Server.EndPoints.ProjectDashBoard
                 var dto = MapToProjectDashboardDto(row);
                 return Results.Ok(new GeneralDto<ProjectDashboardDto>
                 {
-                    Suceeded = true,
-               
+                    Succeeded = true,
+
                     Data = dto
 
 
                 });
             });
+            
 
            
         }

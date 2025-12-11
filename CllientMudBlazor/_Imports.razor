@@ -1,6 +1,8 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
+@using BlazorDownloadFile
 @using CllientMudBlazor.Services.HttPServives
+@using CllientMudBlazor.Services.NotificationServices
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
@@ -27,8 +29,56 @@
 @using CllientMudBlazor.Pages.Projects.Monitorings
 @using CllientMudBlazor.Pages.Projects.Planning
 @using CllientMudBlazor.Pages.Projects.Starts
-
+@using Shared.Interfaces
 @using Shared.Dtos.Starts.AcceptanceCriterias
+@using CllientMudBlazor.Pages.Projects.Starts.StartTemplates
+@using Shared.Dtos.Starts.BackGrounds
+@using Shared.Dtos.Starts.Constrainsts
+@using Shared.Dtos.Starts.Scopes
+@using Shared.Dtos.Starts.ExpertJudgements
+@using Shared.Dtos.Starts.KnownRisks;
+@using Shared.Dtos.Starts.Objectives;
+@using Shared.Dtos.Starts.Requirements;
+@using Shared.Dtos.Starts.Assumptions
+@using Shared.Dtos.Starts.Qualitys
+@using Shared.Dtos.Starts.Bennefits;
+@using Shared.Dtos.Starts.StakeHolderInsideProjectInsideProjects
+@using CllientMudBlazor.Pages.StakeHolders
+@using Shared.Dtos.StakeHolders
+@using Shared.Enums.StakeHolderTypes
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Alterations
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Contingencys
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.EHSs
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Electricals
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.EngineeringDesigns
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Engineerings
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Equipments
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Foundations
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Instruments
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Paintings
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Pipes
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Structurals
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Taxes
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Testings
+@using CllientMudBlazor.Pages.Projects.Starts.Investments.Valves
+@using CllientMudBlazor.Pages.Projects.Managements.Approves
+@using CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
+@using CllientMudBlazor.Pages.Projects.Starts.Assumptions
+@using CllientMudBlazor.Pages.Projects.Starts.BackGrounds
+@using CllientMudBlazor.Pages.Projects.Starts.Bennefits
+@using CllientMudBlazor.Pages.Projects.Starts.Constrainsts
+@using CllientMudBlazor.Pages.Projects.Starts.ExpertJudgements
+@using CllientMudBlazor.Pages.Projects.Starts.Investments
+@using CllientMudBlazor.Pages.Projects.Starts.KnownRisks
+@using CllientMudBlazor.Pages.Projects.Starts.Objectives
+@using CllientMudBlazor.Pages.Projects.Starts.Qualitys
+@using CllientMudBlazor.Pages.Projects.Starts.Requirements
+@using CllientMudBlazor.Pages.Projects.Starts.Scopes
+@using CllientMudBlazor.Pages.Projects.Starts.StakeHolderInsideProjects
+@using CllientMudBlazor.Services.Enums
+@using Shared.Dtos.Starts.Investments
+
+@using Shared.Commons
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
@@ -36,3 +86,6 @@
 @inject IHttpServices HttpService
 @inject IDialogService DialogService
 @inject IUserInfoService UserInfoService
+@inject ProjectNotificationService NotificationService
+@inject IBlazorDownloadFileService blazorDownloadFileService
+@inject ISnackBarService _snackbarService

@@ -51,7 +51,7 @@ namespace Server.EndPoints.Suppliers
         public void MapEndPoint(IEndpointRouteBuilder app)
         {
             // ✅ Crear
-            app.MapPost("CreateSupplier", async (CreateSupplier dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("CreateSupplier", async (CreateSupplier dto, IAppDbContext _context) =>
             {
                 var row = new Supplier
                 {
@@ -63,10 +63,10 @@ namespace Server.EndPoints.Suppliers
                 if (result > 0)
                 {
                     var cacheKeyAll = $"{typeof(GetAllSuppliers).Name}";
-                    cache.InvalidateCache(cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Supplier).Name} created successfully."
                     });
 
@@ -74,7 +74,7 @@ namespace Server.EndPoints.Suppliers
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Supplier).Name} was not created successfully."
                 });
 
@@ -84,7 +84,7 @@ namespace Server.EndPoints.Suppliers
 
 
             // ✅ Editar
-            app.MapPost("EditSupplier", async (EditSupplier dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("EditSupplier", async (EditSupplier dto, IAppDbContext _context) =>
             {
 
 
@@ -92,7 +92,7 @@ namespace Server.EndPoints.Suppliers
                 if (row == null)
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = "Supplier not found."
                     });
                 MapFromDto(dto, row);
@@ -101,10 +101,10 @@ namespace Server.EndPoints.Suppliers
                 {
                     var cacheKeyId = $"{typeof(GetSupplierById).Name}-{dto.Id}";
                     var cacheKeyAll = $"{typeof(GetAllSuppliers).Name}";
-                    cache.InvalidateCache(cacheKeyId, cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyId, cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Supplier).Name} created successfully."
                     });
 
@@ -112,17 +112,17 @@ namespace Server.EndPoints.Suppliers
                 }
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Supplier).Name} was not created successfully."
                 });
 
             });
 
             // ✅ Obtener por ID
-            app.MapPost("GetSupplierById", async (GetSupplierById request, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetSupplierById", async (GetSupplierById request, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetSupplierById).Name}-{request.Id}";
-                var row = await _cache.GetOrAddCacheAsync(async () =>
+                var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Suppliers
                   .AsSplitQuery()
@@ -138,7 +138,7 @@ namespace Server.EndPoints.Suppliers
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(Supplier).Name} was not found"
                     });
                 }
@@ -146,7 +146,7 @@ namespace Server.EndPoints.Suppliers
                 var dto = MapToDto(row);
                 return Results.Ok(new GeneralDto<SupplierDto>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Message = $"{typeof(Supplier).Name} was found!",
                     Data = dto
 
@@ -155,10 +155,10 @@ namespace Server.EndPoints.Suppliers
             });
 
             // ✅ Obtener todos
-            app.MapPost("GetAllSuppliers", async (GetAllSuppliers dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("GetAllSuppliers", async (GetAllSuppliers dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllSuppliers).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Suppliers
                   .AsSplitQuery()
@@ -172,18 +172,18 @@ namespace Server.EndPoints.Suppliers
 
                 return Results.Ok(new GeneralDto<List<SupplierDto>>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = dtos
                 });
             });
-            app.MapPost("DeleteSupplier", async (DeleteSupplier dto, IAppDbContext _context, ICache cache) =>
+            app.MapPost("DeleteSupplier", async (DeleteSupplier dto, IAppDbContext _context) =>
             {
                 var row = await _context.Suppliers.FindAsync(dto.Id);
                 if (row is null)
                 {
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = false,
+                        Succeeded = false,
                         Message = $"{typeof(Supplier).Name} was not found"
                     });
                 }
@@ -192,32 +192,32 @@ namespace Server.EndPoints.Suppliers
                 {
                     var cacheKeyId = $"{typeof(GetSupplierById).Name}-{dto.Id}";
                     var cacheKeyAll = $"{typeof(GetAllSuppliers).Name}";
-                    cache.InvalidateCache(cacheKeyId, cacheKeyAll);
+                    _context.InvalidateCache(cacheKeyId, cacheKeyAll);
                     return Results.Ok(new GeneralDto
                     {
-                        Suceeded = true,
+                        Succeeded = true,
                         Message = $"{typeof(Supplier).Name} was deleted"
                     });
                 }
 
                 return Results.Ok(new GeneralDto
                 {
-                    Suceeded = false,
+                    Succeeded = false,
                     Message = $"{typeof(Supplier).Name} was not deleted"
                 });
             });
 
             //// ✅ Eliminar varios
-            //app.MapPost("DeleteGroupSupplier", async (DeleteGroupSupplier dto, IAppDbContext _context, ICache cache) =>
+            //app.MapPost("DeleteGroupSupplier", async (DeleteGroupSupplier dto, IAppDbContext _context) =>
             //{
             //    return Results.Ok(await service.DeleteRangeAsync<Supplier>(dto.GroupIds));
             //});
 
             // ✅ Validar nombre único
-            app.MapPost("ValidateSupplierName", async (ValidateSupplierName dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ValidateSupplierName", async (ValidateSupplierName dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllSuppliers).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Suppliers
                   .AsSplitQuery()
@@ -233,17 +233,17 @@ namespace Server.EndPoints.Suppliers
 
                 return new GeneralDto<bool>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = isUnique,
                     Message = isUnique ? "Name is available." : "Name already in use."
                 };
             });
 
             // ✅ Validar nick único (similar)
-            app.MapPost("ValidateSupplierNickName", async (ValidateSupplierNickName dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ValidateSupplierNickName", async (ValidateSupplierNickName dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllSuppliers).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Suppliers
                   .AsSplitQuery()
@@ -259,17 +259,17 @@ namespace Server.EndPoints.Suppliers
 
                 return new GeneralDto<bool>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = isUnique,
                     Message = isUnique ? "Name is available." : "Name already in use."
                 };
             });
 
             // ✅ Validar vendor code único (similar)
-            app.MapPost("ValidateSupplierVendorCode", async (ValidateSupplierVendorCode dto, IAppDbContext _context, ICache _cache) =>
+            app.MapPost("ValidateSupplierVendorCode", async (ValidateSupplierVendorCode dto, IAppDbContext _context) =>
             {
                 var cacheKey = $"{typeof(GetAllSuppliers).Name}";
-                var rows = await _cache.GetOrAddCacheAsync(async () =>
+                var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Suppliers
                   .AsSplitQuery()
@@ -285,7 +285,7 @@ namespace Server.EndPoints.Suppliers
 
                 return new GeneralDto<bool>
                 {
-                    Suceeded = true,
+                    Succeeded = true,
                     Data = isUnique,
                     Message = isUnique ? "VendorCode is available." : "VendorCode already in use."
                 };

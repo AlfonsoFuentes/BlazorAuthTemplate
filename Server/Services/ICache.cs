@@ -4,47 +4,27 @@ using System.Security.Claims;
 
 namespace Server.Services
 {
-    public interface ICache
-    {
-        string TenantId { get; }
-        Task<T?> GetOrAddCacheAsync<T>(Func<Task<T?>> addItemFactory, string key, bool IsTenanted = false) where T : class; // T sigue siendo class, pero el resultado puede ser null
-        void InvalidateCache(params string[] types);
-    }
-    public class Cache : ICache
-    {
-        private readonly IAppCache _cache;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ConcurrentDictionary<string, byte> _cacheKeys = new();
-        public string TenantId =>
-           _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value
-           ?? "default";
+    //public interface ICache
+    //{
+    //    string TenantId { get; }
+       
+    //}
+    //public class Cache : ICache
+    //{
+    //    private readonly IAppCache _cache;
+    //    private readonly IHttpContextAccessor _httpContextAccessor;
+    //    private readonly ConcurrentDictionary<string, byte> _cacheKeys = new();
+    //    public string TenantId =>
+    //       _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value
+    //       ?? "default";
 
-        public Cache(IAppCache cache, IHttpContextAccessor httpContextAccessor)
-        {
-            _cache = cache;
-            _httpContextAccessor = httpContextAccessor;
-        }
-        public async Task<T?> GetOrAddCacheAsync<T>(Func<Task<T?>> addItemFactory, string key, bool isTenanted = false) where T : class
-        {
-            
-            var tenantPart = isTenanted ? $"-{TenantId}" : "";
-
-            var finalKey = $"{key}{tenantPart}";
-
-            _cacheKeys.TryAdd(finalKey, 0);
-            return await _cache.GetOrAddAsync(finalKey, addItemFactory); // ✅ Ahora acepta T?
-        }
-        public void InvalidateCache(params string[] keysToRemove) 
-        {
-           
-
-            foreach (var key in keysToRemove)
-            {
-                _cacheKeys.TryRemove(key, out _);
-                _cache.Remove(key);
-            }
-        }
-    }
+    //    public Cache(IAppCache cache, IHttpContextAccessor httpContextAccessor)
+    //    {
+    //        _cache = cache;
+    //        _httpContextAccessor = httpContextAccessor;
+    //    }
+       
+    //}
     //public interface ICache2
     //{
     //    string TenantId { get; }

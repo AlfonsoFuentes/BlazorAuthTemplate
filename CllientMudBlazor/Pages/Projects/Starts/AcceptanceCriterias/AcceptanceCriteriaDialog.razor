@@ -1,35 +1,57 @@
-﻿<EditForm Model="@Model" OnValidSubmit="Submit">
-    <MudCard>
-        <MudCardContent>
+﻿@* AcceptanceCriteriaDialog.razor *@  
+@inherits ComponentBase
 
-            <FluentValidationValidator @ref="_fluentValidationValidator" />
-            <ValidationSummary></ValidationSummary>
-            <MudGrid>
-                <MudItem xs="12">
-                    <TextField @bind-Value="@Model.Name"
-                               Label="Name"
-                               Lines="2"
-                               ValidateAsync="ValidateAsync"
-                               For="()=>Model.Name">
-                    </TextField>
+<TemplateDialog TValue="AcceptanceCriteriaDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
 
-                </MudItem>
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)">
+                </TextField>
 
+            </MudItem>
+        </MudGrid>
+    </Content>
 
-
-            </MudGrid>
-
-
-        </MudCardContent>
-        <MudCardActions>
-
-            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!Validated ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
-
-        </MudCardActions>
-    </MudCard>
-</EditForm>
+</TemplateDialog>
 
 @code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public AcceptanceCriteriaDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Solo carga si es edición
+        if (Model.Id != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetAcceptanceCriteriaById, GeneralDto<EditAcceptanceCriteria>>(
+                new GetAcceptanceCriteriaById { Id = Model.Id });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model.Name = result.Data.Name;
+                Model.Order = result.Data.Order;
+                // Si tu EditAcceptanceCriteria tiene más props, asigna aquí
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<AcceptanceCriteriaDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
 
 }

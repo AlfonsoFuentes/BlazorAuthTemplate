@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using Server.DataContext;
 using Server.Domain.Identities;
 using Server.Interfaces.EndPoints;
 using Server.Repositories;
+using Server.Services.Repositories;
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-
-using Microsoft.EntityFrameworkCore;
 
 namespace Server.Services
 {
@@ -75,11 +76,13 @@ namespace Server.Services
             }
 
                 );
+            QuestPDF.Settings.License = LicenseType.Community;
             builder.Services.AddEndPoints();
             builder.Services.AddLazyCache();
             builder.Services.AddTransient<ITokenService, TokenService>();
-            builder.Services.AddSingleton<ICache, Cache>();
-          
+            builder.Services.AddScoped<IRepositoryInvestmentCalculation, RepositoryInvestmentCalculation>();
+            builder.Services.AddScoped<IRepositoryGetNextOrder, RepositoryGetNextOrder>();
+        
             return builder;
         }
         public static IServiceCollection AddEndPoints(this IServiceCollection service)

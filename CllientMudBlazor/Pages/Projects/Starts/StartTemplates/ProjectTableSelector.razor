@@ -1,0 +1,94 @@
+﻿
+<!-- ProjectTableSelector.razor -->
+<MudStack>
+
+    <MudToolBar Class="d-flex justify-start gap-4" Dense="true">
+        <IconButton ToolTip="Get Project Charter" Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Primary" Size="Size.Medium" OnClick="GetProjectCharterPDF"></IconButton>
+        <IconButton ToolTip="Approve Project" Icon="@Icons.Material.Filled.Approval" Color="Color.Primary" 
+                    Size="Size.Medium" OnClick="OpenApproveProjectDialog" Disabled="DisableButtonsAddEdit"></IconButton>
+
+    </MudToolBar>
+    <MudGrid>
+
+
+        @foreach (var table in Enum.GetValues<DashBoardsStartTable>()
+                .Select(e => new { Value = e, DisplayName = e.GetDescription() })
+                .ToList())
+        {
+            <MudItem xs="12" sm="3">
+                <MudCard>
+                    <MudCardHeader>@table.DisplayName</MudCardHeader>
+                    <MudCardActions>
+                        <MudButton StartIcon="@Icons.Material.Filled.List"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   OnClick="@(() => OnTableSelected.InvokeAsync(table.Value))" />
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>
+@code {
+    [Parameter]
+    public EventCallback<DashBoardsStartTable> OnTableSelected { get; set; }
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public bool DisableButtonsAddEdit { get; set; } = false;
+
+    async Task OpenApproveProjectDialog()
+    {
+        ApproveProject model = new()
+        {
+            Id = ProjectId,
+        };
+        var parameters = new DialogParameters<ApproveProjectDialog>
+            {
+                { x => x.Model, model},
+            };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<ApproveProjectDialog>("Approve Project", parameters, options);
+        var result = await dialog.Result;
+        if (result != null)
+        {
+
+            NotificationService.NotifyProjectsChanged(); // ✅ esto recargará ProjectList
+            StateHasChanged();
+        }
+
+    }
+    async Task GetProjectCharterPDF()
+    {
+        ExportProjectChartedPDF model = new ExportProjectChartedPDF()
+        {
+            ProjectId = ProjectId
+        };
+        var result = await HttpService.PostAsync<ExportProjectChartedPDF, GeneralDto<FileResult>>(model);
+  
+        if (result.Succeeded)
+        {
+
+            Console.WriteLine(result.Message);
+            var downloadresult = await blazorDownloadFileService.DownloadFile(result.Data.ExportFileName,
+              result.Data.Data, contentType: result.Data.ContentType);
+            if (downloadresult.Succeeded)
+            {
+                _snackbarService.ShowSuccess($"Project Charter for {result.Message} exported succesfully");
+
+            }
+            else
+            {
+                _snackbarService.ShowError($"Project Charter for {result.Message} not exported succesfully");
+            }
+        }
+        else
+        {
+            _snackbarService.ShowError($"Project Charter for {result.Message} not created succesfully");
+        }
+    }
+
+}

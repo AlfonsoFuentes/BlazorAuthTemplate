@@ -81,7 +81,7 @@ namespace CllientMudBlazor.Services.HttPServives
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 var result = await response.Content.ReadFromJsonAsync<GeneralDto<bool>>();
-                return result?.Suceeded == true && result.Data == true;
+                return result?.Succeeded == true && result.Data == true;
             }
 
             return false;

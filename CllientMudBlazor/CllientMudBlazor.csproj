@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Assets\CPLogo.png" />
+    <Content Include="Assets\PMLogo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
     <PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="FluentValidation" Version="12.1.0" />
@@ -25,19 +31,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Pages\Projects\Starts\Backgrounds\" />
-    <Folder Include="Pages\Projects\Starts\Investments\" />
-    <Folder Include="Pages\Projects\Starts\Constrainsts\" />
-    <Folder Include="Pages\Projects\Starts\Assumptions\" />
-    <Folder Include="Pages\Projects\Starts\ExpertJudgments\" />
-    <Folder Include="Pages\Projects\Starts\KnownRisks\" />
-    <Folder Include="Pages\Projects\Starts\Scopes\" />
-    <Folder Include="Pages\Projects\Starts\Requirements\" />
-    <Folder Include="Pages\Projects\Starts\Objectives\" />
-    <Folder Include="Pages\Projects\Starts\StakeHolders\" />
   </ItemGroup>
 
 </Project>

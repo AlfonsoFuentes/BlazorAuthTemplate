@@ -2,7 +2,7 @@
 {
     public class GeneralDto
     {
-        public bool Suceeded { get; set; }
+        public bool Succeeded { get; set; }
         public string Message { get; set; } = string.Empty;
     }
     public class GeneralDto<T> : GeneralDto

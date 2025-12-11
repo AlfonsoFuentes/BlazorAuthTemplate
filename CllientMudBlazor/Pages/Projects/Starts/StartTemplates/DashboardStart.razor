@@ -1,0 +1,76 @@
+﻿@if (CurrentTable != null)
+{
+    <MudPaper Elevation="1" Class="pa-4">
+
+
+        @switch (CurrentTable)
+        {
+            case DashBoardsStartTable.StakeHolders:
+                <StakeHolderInsideProject ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit"></StakeHolderInsideProject>
+                break;
+            case DashBoardsStartTable.BackGrounds:
+                <BackGround ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit"></BackGround>
+                break;
+            case DashBoardsStartTable.Objectives:
+                <Objective ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+
+            case DashBoardsStartTable.Requirements:
+                <Requirement ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Scopes:
+                <Scope ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Investment:
+                <Investments ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Benefits:
+                <Bennefit ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.AcceptanceCriterias:
+                <AcceptanceCriteria ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Constrainsts:
+                <Constrainst ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Assumptions:
+                <Assumption ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit"/>
+                break;
+            case DashBoardsStartTable.ExpertJudgment:
+                <ExpertJudgement ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.Quality:
+                <Quality ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+            case DashBoardsStartTable.KnownRisks:
+                <KnownRisk ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                break;
+
+
+
+        }
+    </MudPaper>
+}
+else
+{
+    <MudPaper Elevation="0" Class="pa-8 text-center">
+        <ProjectTableSelector OnTableSelected="ShowTable" ProjectId="ProjectId" DisableButtonsAddEdit="DisableButtonsAddEdit" />
+    </MudPaper>
+}
+@code {
+    [Parameter, EditorRequired]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public bool DisableButtonsAddEdit { get; set; } = false;
+
+    private DashBoardsStartTable? CurrentTable { get; set; }
+    private void ShowTable(DashBoardsStartTable table)
+    {
+        CurrentTable = table;
+    }
+    private void HideTable()
+    {
+        CurrentTable = null!;
+    }
+
+}

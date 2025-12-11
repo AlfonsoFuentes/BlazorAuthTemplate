@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using LazyCache;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Server.Domain.CommonEntities;
@@ -13,18 +14,23 @@ using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams.Valves;
 using Server.Domain.Identities;
 using Server.Services;
 using Shared.Dtos;
+using System.Collections.Concurrent;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace Server.DataContext
 {
     public class AppDbContext : IdentityDbContext<AppUser, IdentityRole, string>, IAppDbContext
     {
-        private readonly ICache _cache;
+
+        private readonly IAppCache _cache;
         string _tenantId = string.Empty;
-        public AppDbContext(DbContextOptions<AppDbContext> options, ICache cache) : base(options)
+        private readonly ConcurrentDictionary<string, byte> _cacheKeys = new();
+        public AppDbContext(DbContextOptions<AppDbContext> options, IAppCache cache, IHttpContextAccessor httpContextAccessor) : base(options)
         {
             _cache = cache;
-            _tenantId = _cache.TenantId;
+            _tenantId =httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value
+           ?? "default";
         }
 
         public DbSet<OtherTask> OtherTasks { get; set; } = null!;
@@ -224,6 +230,25 @@ namespace Server.DataContext
             }
             return 0;
         }
+        public async Task<T?> GetOrAddCacheAsync<T>(Func<Task<T?>> addItemFactory, string key, bool isTenanted = false) where T : class
+        {
 
+            var tenantPart = isTenanted ? $"-{_tenantId}" : "";
+
+            var finalKey = $"{key}{tenantPart}";
+
+            _cacheKeys.TryAdd(finalKey, 0);
+            return await _cache.GetOrAddAsync(finalKey, addItemFactory); // ✅ Ahora acepta T?
+        }
+        public void InvalidateCache(params string[] keysToRemove)
+        {
+
+
+            foreach (var key in keysToRemove)
+            {
+                _cacheKeys.TryRemove(key, out _);
+                _cache.Remove(key);
+            }
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using CllientMudBlazor.Templates;
+﻿using CllientMudBlazor.Services.Enums;
+using CllientMudBlazor.Services.HttPServives;
+using CllientMudBlazor.Templates;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Shared.Dtos.General;
@@ -8,24 +10,31 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
 {
     public partial class AcceptanceCriteria
     {
-        string Title => "Acceptance Criterias";
+        string Title => DashBoardsStartTable.AcceptanceCriterias.GetDescription();
 
         [Parameter]
         public Guid ProjectId { get; set; }
-        [Parameter]
-        public EventCallback GetAllParent { get; set; }
+       
 
         List<AcceptanceCriteriaDto> Items = new();
         string nameFilter = string.Empty;
-        Func<AcceptanceCriteriaDto, bool> Criteria => x => x.Name.Contains(nameFilter, StringComparison.InvariantCultureIgnoreCase);
 
-        public List<AcceptanceCriteriaDto> FilteredItems => string.IsNullOrEmpty(nameFilter) ? Items :
-            Items.Where(Criteria).ToList();
-        async Task OnNameFilter(string namefilter)
+        public List<AcceptanceCriteriaDto> FilteredItems =>
+        string.IsNullOrEmpty(nameFilter)
+            ? Items.OrderBy(x => x.Order).ToList()
+            : Items
+                .Where(x => x.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Order)
+                .ToList();
+
+        // 🔹 Sincroniza el filtro con el genérico (usando debounce en el TextField)
+        private async Task OnNameFilterChanged(string value)
         {
-            nameFilter = namefilter;
-            await Task.Delay(1);
+            nameFilter = value;
+            // No necesitas StateHasChanged() aquí: FilteredItems es una propiedad calculada
+            // y Blazor la reevalúa automáticamente al cambiar nameFilter.
         }
+
         protected override async Task OnParametersSetAsync()
         {
             await GetAll();
@@ -36,10 +45,10 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
             {
                 ProjectId = ProjectId,
             });
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
-                Items = result.Data.OrderBy(x=>x.Order).ToList();
-                if (GetAllParent.HasDelegate) await GetAllParent.InvokeAsync();
+                Items = result.Data.OrderBy(x => x.Order).ToList();
+                
                 StateHasChanged();
             }
         }
@@ -56,7 +65,7 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
 
             var options = new DialogOptions() { MaxWidth = MaxWidth.Medium };
 
-            var dialog = await DialogService.ShowAsync<AcceptanceCriteriaDialog>("Add Acceptance Criteria", parameters, options);
+            var dialog = await DialogService.ShowAsync<AcceptanceCriteriaDialog>($"Add {Title}", parameters, options);
             var result = await dialog.Result;
             if (result != null)
             {
@@ -66,15 +75,22 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
         }
         async Task Edit(AcceptanceCriteriaDto dto)
         {
-            var parameters = new DialogParameters<AcceptanceCriteriaDialog>
-        {
+            EditAcceptanceCriteria model = new()
+            {
+                Id = dto.Id,
+                ProjectId = dto.ProjectId,
+                Name = dto.Name,
 
-            { x => x.Model, dto},
-        };
+            };
+            var parameters = new DialogParameters<AcceptanceCriteriaDialog>
+            {
+
+                { x => x.Model, model},
+            };
             var options = new DialogOptions() { MaxWidth = MaxWidth.Medium };
 
 
-            var dialog = await DialogService.ShowAsync<AcceptanceCriteriaDialog>("Edit Acceptance Criteria", parameters, options);
+            var dialog = await DialogService.ShowAsync<AcceptanceCriteriaDialog>($"Edit {Title}", parameters, options);
             var result = await dialog.Result;
             if (result != null)
             {
@@ -106,7 +122,7 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
 
                 };
                 var resultDelete = await HttpService.PostAsync<DeleteAcceptanceCriteria, GeneralDto>(request);
-                if (resultDelete.Suceeded)
+                if (resultDelete.Succeeded)
                 {
                     await GetAll();
 
@@ -123,12 +139,12 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
             ChangeOrderAcceptanceCriteria neworder = new()
             {
                 Id = dto.Id,
-              
+
                 ProjectId = ProjectId,
             };
             neworder.NewOrder = dto.Order - 1;
             var result = await HttpService.PostAsync<ChangeOrderAcceptanceCriteria, GeneralDto>(neworder);
-            if(result.Suceeded)
+            if (result.Succeeded)
             {
                 await GetAll();
             }
@@ -140,15 +156,17 @@ namespace CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
             ChangeOrderAcceptanceCriteria neworder = new()
             {
                 Id = dto.Id,
-      
+
                 ProjectId = ProjectId,
             };
             neworder.NewOrder = dto.Order + 1;
             var result = await HttpService.PostAsync<ChangeOrderAcceptanceCriteria, GeneralDto>(neworder);
-            if (result.Suceeded)
+            if (result.Succeeded)
             {
                 await GetAll();
             }
         }
+
+
     }
 }

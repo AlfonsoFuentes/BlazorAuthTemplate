@@ -1,0 +1,77 @@
+﻿@using Shared.Dtos.Starts.Alterations
+@* AlterationDialog.razor *@  
+@inherits ComponentBase
+
+<TemplateDialog TValue="AlterationDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="ctx.ValidateAsync"
+                           For="()=>ctx.Model.Name">
+                </TextField>
+            </MudItem>
+            <MudItem xs="12">
+                <CurrencyNumericField Label="Unitary Cost, USD"
+                                      ValidateAsync="ctx.ValidateAsync"
+                                      @bind-Value="ctx.Model.UnitaryCost"
+                                      For="()=>ctx.Model.UnitaryCost" />
+
+            </MudItem>
+            <MudItem xs="12">
+                <DoubleNumericField Label="Quantity"
+                                    ValidateAsync="ctx.ValidateAsync"
+                                    @bind-Value="ctx.Model.Quantity"
+                                    For="()=>ctx.Model.Quantity" />
+
+
+
+            </MudItem>
+            <MudItem xs="12">
+                <Field Typo="Typo.body2" Label="Budget, USD">@ctx.Model.BudgetUSD.ToCurrencyCulture()</Field>
+                <ValidationMessage For="() => ctx.Model.BudgetUSD" style="color:red; font-size:x-small;" />
+            </MudItem>
+
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public AlterationDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Solo carga si es edición
+        if (Model.Id != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetAlterationById, GeneralDto<EditAlteration>>(
+                new GetAlterationById { Id = Model.Id });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model = result.Data;
+
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<AlterationDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

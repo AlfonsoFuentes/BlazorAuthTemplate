@@ -1,0 +1,66 @@
+﻿@using Shared.Dtos.Starts.Instruments
+@* InstrumentDialog.razor *@  
+@inherits ComponentBase
+
+<TemplateDialog TValue="InstrumentDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="ctx.ValidateAsync"
+                           For="()=>ctx.Model.Name">
+                </TextField>
+            </MudItem>
+            <MudItem xs="12">
+                <CurrencyNumericField Label="Budget, USD"
+                                      ValidateAsync="ctx.ValidateAsync"
+                                      @bind-Value="ctx.Model.BudgetUSD"
+                                      For="()=>ctx.Model.BudgetUSD" />
+
+            </MudItem>
+            
+          
+
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public InstrumentDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Solo carga si es edición
+        if (Model.Id != Guid.Empty)
+        {
+            var result = await HttpService.PostAsync<GetInstrumentById, GeneralDto<EditInstrument>>(
+                new GetInstrumentById { Id = Model.Id });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model = result.Data;
+
+            }
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = await HttpService.PostAsync<InstrumentDto, GeneralDto>(Model);
+        if (result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

@@ -1,0 +1,64 @@
+﻿
+
+
+<GenericItemList TItem="BennefitDto"
+                 Title="@Title"
+                 FilteredItems="FilteredItems"
+                 EnableSearch="true"
+                 NameFilter="@nameFilter"
+                 NameFilterChanged="OnNameFilterChanged"
+                 Add="Add"
+                 DisableAdd="@DisableAddEdit"
+                 HideTable="HideTable">
+
+    <CardHeader Context="item">
+        <MudText Typo="Typo.subtitle1"><strong>@item.Order</strong></MudText>
+    </CardHeader>
+
+    <CardContent Context="item">
+        <MudText Typo="Typo.subtitle2">@item.Name</MudText>
+    </CardContent>
+
+    <CardActions Context="item">
+
+        <IconButton ToolTip="@($"Order Up {item.Name}")"
+                    Color="Color.Info"
+                    OnClick="() => OrderUp(item)" Disabled="@DisableAddEdit"
+                    Variant="Variant.Outlined"
+                    Icon="@Icons.Material.Outlined.ArrowUpward" />
+
+        <IconButton ToolTip="@($"Order Down {item.Name}")"
+                    Color="Color.Info"
+                    OnClick="() => OrderDown(item)" Disabled="@DisableAddEdit"
+                    Variant="Variant.Outlined"
+                    Icon="@Icons.Material.Outlined.ArrowDownward" />
+
+        <IconButton ToolTip="@($"Edit {item.Name}")"
+                    Color="Color.Info"
+                    OnClick="() => Edit(item)"
+                    Variant="Variant.Outlined" Disabled="@DisableAddEdit"
+                    Icon="@Icons.Material.Outlined.Edit" />
+
+        <IconButton ToolTip="@($"Delete {item.Name}")"
+                    Color="Color.Warning"
+                    OnClick="() => Delete(item)"
+                    Variant="Variant.Outlined" Disabled="@DisableAddEdit"
+                    Icon="@Icons.Material.Outlined.DeleteForever" />
+    </CardActions>
+</GenericItemList>
+
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+
+    // 🔹 Filtro gestionado aquí (como querías)
+
+    [Parameter]
+    public EventCallback HideTable { get; set; }
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+
+   
+}
