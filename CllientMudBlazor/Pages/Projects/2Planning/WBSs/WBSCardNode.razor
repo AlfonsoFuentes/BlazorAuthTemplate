@@ -1,0 +1,198 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+<div class="@($"wbs-node {GetNodeClass()}")" style="@($"--wbs-level: {Level}")">
+    <MudCard Outlined="true"
+             Square="true"
+             Elevation="1"
+             Style="max-width: 500px; width: 100%;"
+             Class="wbs-card-compact">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudStack Spacing="1" Row="true" AlignItems="AlignItems.Baseline" Justify="Justify.SpaceAround" StretchItems="StretchItems.StartAndEnd">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Dark" Style="font-weight: 600;">
+                        ID @Task.IdNumber
+                    </MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Dark" Style="font-weight: 600;">
+
+
+                        WBS: @Task.WbsCode
+                    </MudText>
+
+
+                </MudStack>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                @if (Task.Children?.Count > 0)
+                {
+                    <IconButton Icon="@(Task.IsExpanded? Icons.Material.Filled.ArrowDropDown : Icons.Material.Filled.ArrowRight)"
+                                OnClick="ToggleExpand"
+                                Size="Size.Small" />
+                }
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudStack Spacing="2">
+                <!-- Nombre de la tarea -->
+                <MudText Typo="Typo.subtitle2"
+                         Class="wbs-task-name">
+                    @Task.Name
+                </MudText>
+
+                <!-- Fechas y dependencias -->
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudText Typo="Typo.caption" Color="Color.Dark">
+                        📅 @Task.StartDate?.ToString("MM/dd/yyyy") – @Task.EndDate?.ToString("MM/dd/yyyy") -  @Task.Duration
+                    </MudText>
+
+
+                    @if (!string.IsNullOrEmpty(Task.SummaryDependencies))
+                    {
+                        bool hasConflict = Task.Dependencies.Any(d => d.IsCircularConflict);
+                        string textClass = hasConflict ? "text-error-strikethrough" : "mud-text-secondary";
+                        var dependencyColor = hasConflict ? Color.Error : Color.Dark;
+                        <MudDivider Vertical="true" Class="mx-1" Style="height: 16px;" />
+                        <MudTooltip Text="@(hasConflict ? "Hierarchical conflict detected: Circular reference ignored." : "Task Dependencies")">
+                            <MudText Typo="Typo.overline"
+                                     Color="@dependencyColor"
+                                     Class="@(hasConflict ? "text-decoration: line-through; font-weight: bold;" : "")">
+                                🔗 @Task.SummaryDependencies
+                            </MudText>
+                        </MudTooltip>
+                    }
+
+                </MudStack>
+            </MudStack>
+        </MudCardContent>
+        <MudCardActions>
+            <IconButton Color="Color.Primary"
+                        ToolTip="Add Task"
+                        Icon="@Icons.Material.Filled.Add"
+                        OnClick="() => Add(Task.Id)" />
+            <IconButton ToolTip="Edit Task"
+                        Color="Color.Info"
+                        Variant="Variant.Outlined"
+                        Icon="@Icons.Material.Outlined.Edit"
+                        OnClick="() => Edit(Task)" />
+            <IconButton ToolTip="Move Up"
+                        Color="Color.Info"
+                        Icon="@Icons.Material.Outlined.ArrowUpward"
+                        Disabled="@(!WbsActions.CanMoveUp(Task, AllTasks)||DisabledAddEdit)"
+                        OnClick="() => MoveUp(Task)" />
+            <IconButton ToolTip="Move Down"
+                        Color="Color.Info"
+                        Icon="@Icons.Material.Outlined.ArrowDownward"
+                        Disabled="@(!WbsActions.CanMoveDown(Task, AllTasks)||DisabledAddEdit)"
+                        OnClick="() => MoveDown(Task)" />
+            <IconButton ToolTip="Indent Right"
+                        Color="Color.Info"
+                        Icon="@Icons.Material.Outlined.FormatIndentIncrease"
+                        Disabled="@(!WbsActions.CanIndentRight(Task, AllTasks)||DisabledAddEdit)"
+                        OnClick="() => IndentRight(Task)" />
+            <IconButton ToolTip="Indent Left"
+                        Color="Color.Info"
+                        Icon="@Icons.Material.Outlined.FormatIndentDecrease"
+                        Disabled="@(!WbsActions.CanIndentLeft(Task)||DisabledAddEdit)"
+                        OnClick="() => IndentLeft(Task)" />
+            <IconButton ToolTip="Delete Task"
+                        Color="Color.Warning"
+                        Variant="Variant.Outlined"
+                        Icon="@Icons.Material.Outlined.DeleteForever"
+                        OnClick="() => Delete(Task)" />
+        </MudCardActions>
+    </MudCard>
+
+    @if (Task.IsExpanded && Task.Children?.Count > 0)
+    {
+        <div class="wbs-children">
+            @foreach (var child in Task.Children.OrderBy(t => t.Order))
+            {
+                <WBSCardNode Task="child"
+                             DisabledAddEdit="@DisabledAddEdit"
+                             Level="Level + 1"
+                             AllTasks="AllTasks"
+                             OnEdit="OnEdit"
+                             OnAdd="OnAdd"
+                             OnDelete="OnDelete"
+                             OnMoveUp="OnMoveUp"
+                             OnMoveDown="OnMoveDown"
+                             OnIndentLeft="OnIndentLeft"
+                             OnIndentRight="OnIndentRight" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool DisabledAddEdit { get; set; } = false;
+}
+
+<style>
+    .wbs-node {
+        margin-top: 8px;
+    }
+
+        .wbs-node:first-child {
+            margin-top: 0;
+        }
+
+    .wbs-node {
+        margin-left: calc(var(--wbs-level, 0) * 24px);
+    }
+
+    .wbs-children {
+        margin-left: 0;
+    }
+
+    .wbs-task-name {
+        /* ✅ Sin límite → altura dinámica */
+        word-break: break-word;
+        hyphens: auto;
+        line-height: 1.4;
+        font-weight: 400;
+    }
+
+
+
+    /* ✅ Estilo base para TODAS las tarjetas */
+    .wbs-card {
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 4px !important;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    /* ✅ Tarjetas padre: fondo suave */
+    .wbs-parent .wbs-card {
+        background-color: #fafafa;
+    }
+
+    /* ✅ Tarjetas hoja: fondo blanco */
+    .wbs-leaf .wbs-card {
+        background-color: #ffffff;
+    }
+
+    /* ✅ Hover: sombra suave */
+    .wbs-node:hover .wbs-card {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        border-color: #bdbdbd !important;
+    }
+
+    .wbs-card-compact .mud-card-header {
+        min-height: 40px !important;
+        padding: 8px 16px !important;
+    }
+
+    .wbs-card-compact .mud-card-content {
+        padding: 8px 16px !important;
+    }
+
+    .wbs-card-compact .mud-card-actions {
+        padding: 4px 8px !important;
+        min-height: 36px !important;
+    }
+
+    .text-error-strikethrough {
+        text-decoration: line-through;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+</style>

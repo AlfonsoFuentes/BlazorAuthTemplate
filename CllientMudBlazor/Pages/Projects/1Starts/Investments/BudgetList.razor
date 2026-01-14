@@ -1,0 +1,165 @@
+﻿@using Shared.Enums.BudgetCategorys
+
+<style>
+    /* Estilos para mimetizar la MonthlyExpend dentro de la TemplateCard */
+    .budget-row-layout {
+        display: grid;
+        grid-template-columns: 100px 1fr 120px 150px 100px; /* Ajusta los anchos según necesites */
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .compact-cell {
+        font-size: 0.82rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mono-font {
+        font-family: 'Roboto Mono', monospace;
+        text-align: right;
+    }
+
+    /* Reducimos la altura del item en la lista del TemplateCard */
+    .mud-list-item {
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+    }
+</style>
+
+   
+<TemplateCard2 TValue="BudgetItemDto"
+               Title="Budget & Costs"
+               Items="_items"
+               Model="Model"
+               IsLoading="_loading"
+               Edit="StartEdit"
+               Delete="DeleteAsync"
+               Submit="Submit"
+               Cancel="Cancel"
+               GoUp="OrderUp"
+               GoDown="OrderDown"
+              
+               DisableAddEdit="@DisableAddEdit"
+               OrderDisplaySelector="@(x => x.Nomenclatore)"
+               AllowUp="CheckAllowUp"
+               AllowDown="CheckAllowDown"
+               GroupBy="@(x => x.Category)">
+
+    
+
+    <CustomHeaderButtons>
+        <MudMenu Label="Add New Item"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary"
+                 EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                 Class="rounded-pill shadow-4 px-2"
+                 AnchorOrigin="Origin.BottomRight"
+                 TransformOrigin="Origin.TopRight"
+                 Disabled="@DisableAddEdit">
+
+            @foreach (var cat in _allowedCategories)
+            {
+                <MudMenuItem OnClick="@(() => StartCreate(cat))">
+                    Add @cat.ToString()
+                </MudMenuItem>
+            }
+        </MudMenu>
+    </CustomHeaderButtons>
+
+    <FormContent Context="ctx">
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Concept / Name"
+                           Lines="2"
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <DoubleNumericField @bind-Value="ctx.Model.Quantity"
+                                    Label="Quantity"
+                                    ValidateAsync="@ctx.ValidateAsync"
+                                    For="@(() => ctx.Model.Quantity)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <DecimalNumericField @bind-Value="ctx.Model.UnitPriceUSD"
+                                     Label="Unit Price (USD)"
+                                     ValidateAsync="@ctx.ValidateAsync"
+                                     Icon="@Icons.Material.Filled.AttachMoney"
+                                     For="@(() => ctx.Model.UnitPriceUSD)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4" >
+                <MudStack Spacing="1" Style="width:100%;">
+
+                    <MudPaper Class="pa-2 px-3 mud-theme-primary d-flex align-center justify-space-between"
+                              Elevation="0"
+                              Width="100%"
+                              Style="border-radius: 6px;">
+
+                        <div class="d-flex flex-column">
+                            <MudText Typo="Typo.caption" Style="color: rgba(255,255,255, 0.7); font-weight:500; letter-spacing: 0.5px;">
+                                TOTAL BUDGET
+                            </MudText>
+
+                            <MudText Typo="Typo.subtitle1" Style="color: #ffffff; font-weight: 800; line-height: 1.2;">
+                                @ctx.Model.BudgetUSD.ToCurrencyCulture()
+                            </MudText>
+                        </div>
+
+                        <MudIcon Icon="@Icons.Material.Filled.MonetizationOn"
+                                 Size="Size.Medium"
+                                 Style="color: rgba(255,255,255, 0.3);" />
+                    </MudPaper>
+
+                    <ValidationMessage For="() => ctx.Model.BudgetUSD"
+                                       Style="color:red; font-size:x-small; margin-left:4px;" />
+                </MudStack>
+
+                 
+             
+            </MudItem>
+        </MudGrid>
+    </FormContent>
+
+    <MainContent Context="item">
+        <div class="budget-row-layout w-100">
+            @* 1. Nomenclatore *@
+            <div class="compact-cell">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Label="true">
+                    <b>@item.Nomenclatore</b>
+                </MudChip>
+            </div>
+
+            @* 2. Nombre *@
+            <div class="compact-cell">
+                <MudText Typo="Typo.body2" Style="font-weight: 500;">@item.Name</MudText>
+            </div>
+
+           
+
+            @* 4. Total (Resaltado como en la tabla mensual) *@
+            <div class="compact-cell mono-font" style="font-weight: 800; color: var(--mud-palette-primary);">
+                @item.BudgetUSD.ToCurrencyCulture()
+            </div>
+
+            @* 5. Espacio para indicadores o categorías adicionales *@
+            <div class="compact-cell text-right">
+                @if (item.Category == BudgetCategory.Alteration)
+                {
+                    <MudBadge Content='"ALT"' Color="Color.Warning" Overlap="false" />
+                }
+            </div>
+        </div>
+    </MainContent>
+
+</TemplateCard2>
+
+@code {
+
+}

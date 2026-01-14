@@ -1,0 +1,133 @@
+﻿@using MudBlazor
+@using Shared.Dtos.Projects._2._Plannings.Communications
+@using Shared.Enums
+
+<MudDialog>
+    <DialogContent>
+        @if (TaskCommunications == null || !TaskCommunications.Any())
+        {
+            <MudAlert Severity="Severity.Info">No communications defined yet.</MudAlert>
+        }
+        else
+        {
+            <MudList T="CommunicationDto">
+                @foreach (var comm in TaskCommunications)
+                {
+                    <MudPaper Class="mb-2 pa-2 d-flex justify-space-between align-center" Elevation="0" Outlined="true">
+                        <div class="d-flex align-center gap-3">
+                            @* Icono según el tipo (Send/Meet) *@
+                            <MudAvatar Color="Color.Transparent" Size="Size.Small">
+                                <MudIcon Icon="@comm.Type.GetIcon()" Color="Color.Primary" />
+                            </MudAvatar>
+
+                            <div>
+                                <MudText Typo="Typo.subtitle2">@comm.Name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Trigger: <b>@comm.Trigger.GetDescription()</b> | Artifact: @comm.Artifact.GetDescription()
+                                </MudText>
+                            </div>
+                        </div>
+
+                        @* Botón para eliminar esta comunicación específica *@
+                        <div class="d-flex gap-1">
+                            @* 1. Botón EDITAR *@
+                           
+                            <IconButton Icon="@Icons.Material.Filled.Edit"
+                                           Color="Color.Info"
+                                           Size="Size.Small"
+                                           ToolTip="Edit"
+                                           OnClick="@(() => EditComm(comm))"></IconButton>
+
+                            @* 2. Botón BORRAR *@
+                            <IconButton Icon="fas fa-trash"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           ToolTip="Delete"
+                                           OnClick="@(() => DeleteComm(comm))"
+                                           
+                            ></IconButton>
+                        </div>
+                    </MudPaper>
+                }
+            </MudList>
+        }
+
+        <IconButton Color="Color.Primary"
+                    ToolTip="Add Communication"
+                    Icon="@Icons.Material.Filled.Add"
+                    Disabled="@DisableAddEdit"
+                    OnClick="CreateNew" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public List<CommunicationDto> TaskCommunications { get; set; } = null!;
+    [Parameter] public GanttDto TaskContext { get; set; } = null!;
+    [Parameter] public bool DisableAddEdit { get; set; } = false;
+
+    // Inyecta tus servicios si necesitas borrar directo
+    // [Inject] ICommunicationService CommService { get; set; }
+
+    private void Close() => MudDialog.Cancel();
+
+    private async Task CreateNew()
+    {
+        // Cerramos este diálogo y devolvemos una señal para abrir el de crear
+        // O mejor aún, abrimos el de crear ENCIMA de este (Stacked Dialogs)
+
+        var newComm = new CreateCommunication
+        {
+            ProjectId = TaskContext.ProjectId, // Ajusta según tu DTO
+            SelectedGanttTask = TaskContext,
+            Trigger = CommunicationTrigger.TaskEnd
+        };
+        await OpenTemplateDialog(newComm, "Create New Communication");
+    }
+    private async Task EditComm(CommunicationDto comm)
+    {
+        // Importante: Pasamos el objeto 'comm' actual.
+        // El TemplateDialog modificará este objeto si se da click en Submit.
+        await OpenTemplateDialog(comm, "Edit Communication");
+    }
+    private async Task OpenTemplateDialog(CommunicationDto model, string title)
+    {
+        var parameters = new DialogParameters<CommunicationDialog>
+            {
+                { x => x.Model, model},
+                { x => x.FixedTask, TaskContext},
+            };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CommunicationDialog>(title, parameters, options);
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            MudDialog.Close(DialogResult.Ok(true)); // Cerramos indicando que hubo cambios
+        }
+    }
+    private async Task DeleteComm(CommunicationDto comm)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete Communication",
+            "Are you sure you want to remove this communication plan?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            // AQUÍ LLAMAS A TU SERVICIO DELETE
+            // await CommService.DeleteAsync(comm.Id);
+            var deleteDto = new DeleteCommunication { Id = comm.Id, ProjectId = comm.ProjectId };
+            var response = await HttpService.PostAsync<DeleteCommunication, GeneralDto>(deleteDto);
+            // Opción A: Recargar lista localmente si no quieres cerrar
+            if(response.Succeeded)
+
+            // Opción B: Cerrar para recargar todo desde el padre (más seguro)
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+}

@@ -1,0 +1,231 @@
+﻿@using Shared.Dtos.Projects
+@using Shared.Enums
+@implements IDisposable
+
+@if (_loading)
+{
+    <MudStack AlignItems="AlignItems.Center" Class="py-4">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudText Typo="Typo.caption">Loading Metrics...</MudText>
+    </MudStack>
+}
+else if (_data != null)
+{
+    <MudPaper Elevation="2" Class="mb-4 overflow-hidden" Style="border-radius: 8px;">
+        @* HEADER / SUMMARY BAR (Siempre visible) *@
+        <div class="d-flex align-center pa-2 px-4" style="background-color: var(--mud-palette-surface); min-height: 64px;">
+
+            @* Columna 1: Inversión Total *@
+            <div class="d-flex flex-column justify-center border-right pr-6 mr-6" style="min-width: 180px;">
+                <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold; letter-spacing:1px;">TOTAL INVESTMENT</MudText>
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Color="Color.Success" Size="Size.Small" />
+                    <MudText Typo="Typo.h6" Style="font-weight:800;">@(_data.AppropriationUSD.ToCurrencyCulture())</MudText>
+                </div>
+            </div>
+
+            @* Columna 2: Resumen Dinámico (Cambia según el estado de expansión) *@
+            <div class="d-flex align-center flex-grow-1">
+                @if (!_expanded)
+                {
+                    <div class="d-flex align-center gap-8 animate-fade-in">
+                        @* Status Quick View *@
+                        <div class="d-flex flex-column">
+                            <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold;">PMI PHASE GATE</MudText>
+                            <MudChip T="string" Color="@(_data.IsReadyToPlan? Color.Success: Color.Error)"
+                                     Size="Size.Small" Variant="Variant.Text" Class="ma-0 pa-0"
+                                     Icon="@(_data.IsReadyToPlan ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Block)">
+                                @(_data.IsReadyToPlan ? "READY" : "MISSING")
+                            </MudChip>
+                        </div>
+
+                        @* Pulse Quick View *@
+                        <div class="d-flex flex-column">
+                            <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold;">PULSE</MudText>
+                            <div class="d-flex gap-4 mt-1">
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Groups" Color="Color.Info" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Style="font-weight:bold;">@_data.StakeholderCount</MudText>
+                                </div>
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2" Style="font-weight:bold;">@_data.HighRiskCount</MudText>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Class="animate-fade-in" Style="letter-spacing:2px; font-weight:bold; color: var(--mud-palette-primary);">
+                        DETAILED PROJECT METRICS
+                    </MudText>
+                }
+            </div>
+
+            @* Botón de Acción (Triángulo) *@
+            <MudIconButton Icon="@(_expanded? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)"
+                           Color="Color.Primary"
+                           OnClick="ToggleExpand"
+                           Variant="Variant.Filled"
+                           Size="Size.Small" />
+        </div>
+
+        @* SECCIÓN DETALLADA (Solo se renderiza si está expandido) *@
+        @if (_expanded)
+        {
+            <div class="pa-4 pt-2 border-top animate-fade-in" style="background-color: var(--mud-palette-background-grey);">
+                <MudGrid>
+                    @* Card 1: Appropriation *@
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudPaper Class="pa-4 d-flex flex-column justify-space-between" Elevation="0" Style="border-left: 6px solid #4CAF50; height: 100%;">
+                            <div>
+                                <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold; letter-spacing:1px;">APPROPRIATION REQUEST</MudText>
+                                <div class="d-flex align-center gap-2 mt-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Color="Color.Success" Size="Size.Large" />
+                                    <MudText Typo="Typo.h4" Style="font-weight:800;">@(_data.AppropriationUSD.ToCurrencyCulture())</MudText>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <MudDivider Class="mb-2" />
+                                <div class="d-flex justify-space-between align-end">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">CAPITAL</MudText>
+                                        <MudText Typo="Typo.body1" Style="font-weight:600;">@_data.CapitalUSD.ToCurrencyCulture()</MudText>
+                                    </div>
+                                    <div class="d-flex flex-column align-end">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">EXPENSE</MudText>
+                                        <MudText Typo="Typo.body1" Style="font-weight:600;">@_data.ExpensesUSD.ToCurrencyCulture()</MudText>
+                                    </div>
+                                </div>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+
+                    @* Card 2: Phase Gate *@
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudPaper Class="pa-4" Elevation="0" Style="@(_data.IsReadyToPlan ? "border-left: 6px solid #00C853;" : "border-left: 6px solid #F44336; height:100%;")">
+                            <div class="d-flex justify-space-between align-center mb-2">
+                                <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold; letter-spacing:1px;">PMI PHASE GATE</MudText>
+                                @if (_data.IsReadyToPlan)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.CheckCircle">READY</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Block">MISSING ITEMS</MudChip>
+                                }
+                            </div>
+                            <MudStack Spacing="0">
+                                @ReadinessItem("Business Case", _data.HasBusinessCase)
+                                @ReadinessItem("Objectives", _data.HasObjectives)
+                                @ReadinessItem("Scope Defined", _data.HasScope)
+                                @ReadinessItem("Requirements", _data.HasRequirements)
+                                @ReadinessItem("Stakeholders", _data.HasStakeholders)
+                                @ReadinessItem("Risks Assessed", _data.HasRisks)
+                                @ReadinessItem("Budget Defined", _data.AppropriationUSD > 0)
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+
+                    @* Card 3: Pulse *@
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudPaper Class="pa-4" Elevation="0" Style="border-left: 6px solid #2196F3; height: 100%;">
+                            <MudText Typo="Typo.caption" Style="color:#757575; font-weight:bold; letter-spacing:1px;">PROJECT PULSE</MudText>
+                            <MudGrid Class="mt-1">
+                                <MudItem xs="4" Class="d-flex flex-column align-center">
+                                    <MudAvatar Color="Color.Info" Variant="Variant.Outlined" Size="Size.Medium" Class="mb-1">
+                                        <MudIcon Icon="@Icons.Material.Filled.Groups" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Style="font-weight:800;">@_data.StakeholderCount</MudText>
+                                    <MudText Typo="Typo.caption" Align="Align.Center" Style="line-height:1;">Stakeholders</MudText>
+                                </MudItem>
+                                <MudItem xs="4" Class="d-flex flex-column align-center">
+                                    <MudAvatar Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Medium" Class="mb-1">
+                                        <MudIcon Icon="@Icons.Material.Filled.TrackChanges" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Style="font-weight:800;">@_data.ObjectivesCount</MudText>
+                                    <MudText Typo="Typo.caption" Align="Align.Center" Style="line-height:1;">Objectives</MudText>
+                                </MudItem>
+                                <MudItem xs="4" Class="d-flex flex-column align-center">
+                                    <MudAvatar Color="Color.Warning" Variant="Variant.Outlined" Size="Size.Medium" Class="mb-1">
+                                        <MudIcon Icon="@Icons.Material.Filled.Warning" />
+                                    </MudAvatar>
+                                    <MudText Typo="Typo.h6" Style="font-weight:800;">@_data.HighRiskCount</MudText>
+                                    <MudText Typo="Typo.caption" Align="Align.Center" Style="line-height:1;">High Risks</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </div>
+        }
+    </MudPaper>
+}
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .border-right {
+        border-right: 1px solid var(--mud-palette-divider);
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public Guid ProjectId { get; set; }
+
+    private bool _loading = true;
+    private bool _expanded = false; // Estado del panel
+    private ProjectDashboardStartDto? _data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        NotificationService.OnProjectsChanged += LoadData;
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        var request = new GetProjectDashBoardStartById { Id = ProjectId };
+        var result = await HttpService.PostAsync<GetProjectDashBoardStartById, GeneralDto<ProjectDashboardStartDto>>(request);
+
+        if (result.Succeeded)
+        {
+            _data = result.Data;
+        }
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void ToggleExpand() => _expanded = !_expanded;
+
+    private RenderFragment ReadinessItem(string Title, bool IsReady) => __builder =>
+    {
+        <div class="d-flex justify-space-between align-center py-1" style="border-bottom: 1px dashed #e0e0e0;">
+            <MudText Typo="Typo.body2" Color="@(IsReady? Color.Default: Color.Error)">@Title</MudText>
+            <MudIcon Icon="@(IsReady? Icons.Material.Filled.Check : Icons.Material.Filled.Close)"
+                     Color="@(IsReady ? Color.Success : Color.Error)"
+                     Size="Size.Small" />
+        </div>
+    };
+
+    public void Dispose()
+    {
+        NotificationService.OnProjectsChanged -= LoadData;
+    }
+}

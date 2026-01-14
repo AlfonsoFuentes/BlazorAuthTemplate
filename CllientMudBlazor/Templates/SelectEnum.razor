@@ -1,0 +1,55 @@
+﻿@typeparam TItem where TItem : struct, Enum
+@using Shared.ExtensionsMethods
+
+<MudSelect T="TItem"
+           Value="Value"
+           ValueChanged="OnValueChanged"
+           Variant="Variant.Outlined"
+           Label="@Label"
+           Margin="Margin.Dense"
+           Dense="true"
+           For="@For"
+           Disabled="@Disable"
+           Clearable="@Clearable">
+    @foreach (var row in GetItems()
+        .Select((e, i) => new { Index = i + 1, Value = e, DisplayName = e.GetDescription() }))
+    {
+        <MudSelectItem T="TItem" Value="@row.Value" @key="row.Value">
+            @($"{row.DisplayName}")
+        </MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+
+    IEnumerable<TItem> GetItems()
+    {
+        if (Items != null && Items.Any())
+        {
+            return Items;
+        }
+        else
+        {
+            return Enum.GetValues<TItem>();
+        }
+    }
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    [Parameter] public bool Disable { get; set; } = false;
+    bool Clearable { get; set; } = false;
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public TItem Value { get; set; } = default!;
+    [Parameter] public EventCallback<TItem> ValueChanged { get; set; }
+    [Parameter] public EventCallback ValidateAsync { get; set; }
+    [Parameter] public EventCallback Change { get; set; }
+    [Parameter] public EventCallback<TItem> ChangeItem { get; set; }
+    [Parameter] public Expression<Func<TItem>>? For { get; set; }
+
+    private async Task OnValueChanged(TItem value)
+    {
+        Value = value;
+        if (ValueChanged.HasDelegate) await ValueChanged.InvokeAsync(Value);
+        if (Change.HasDelegate) await Change.InvokeAsync();
+        if (ChangeItem.HasDelegate) await ChangeItem.InvokeAsync(Value);
+        if (ValidateAsync.HasDelegate) await ValidateAsync.InvokeAsync();
+    }
+}

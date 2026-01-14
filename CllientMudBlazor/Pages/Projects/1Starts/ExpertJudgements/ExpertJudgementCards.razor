@@ -1,0 +1,75 @@
+﻿<TemplateCard2 TValue="ExpertJudgementDto"
+              Title="Expert Judgments"
+              Items="@_items"
+              Model="@Model"
+              IsLoading="_loading"
+              Create="StartCreate"
+              Edit="StartEdit"
+              Delete="DeleteAsync"
+              Submit="Submit"
+              Cancel="Cancel"
+              GoUp="OrderUp"
+              DisableAddEdit=@DisableAddEdit
+             
+              GoDown="OrderDown">
+
+    <FormContent Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <AutoCompleteIconButton @bind-Value="@ctx.Model.Expert"
+                                        TValue="StakeHolderDto"
+                                        Label="Select Expert"
+                                        ValidateAsync="ctx.ValidateAsync"
+                                        For="()=>ctx.Model.Expert"
+                                        Clearable="true"
+                                        SearchFunc="SearchStakeHolder"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name} ")"
+                                        Icon="@Icons.Material.Filled.Add"
+                                        ButtonClick="AddStakeHolder"
+                                        ToolTip="Add new Expert"
+                                        Change="ChangeStakeHolder">
+
+                </AutoCompleteIconButton>
+
+
+            </MudItem>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)">
+                </TextField>
+            </MudItem>
+
+
+        </MudGrid>
+    </FormContent>
+
+    <MainContent Context="item">
+        <div class="d-flex align-center w-100">
+
+            <div class="d-flex flex-column flex-grow-1">
+                <div class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">@item.Name</MudText>
+
+                </div>
+
+                <div class="d-flex align-center gap-2">
+                    <MudText Typo="Typo.caption" Color="Color.Default">By: @item.ExpertName</MudText>
+                   
+                </div>
+               
+            </div>
+        </div>
+       
+     
+    </MainContent>
+
+</TemplateCard2>
+
+
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+}

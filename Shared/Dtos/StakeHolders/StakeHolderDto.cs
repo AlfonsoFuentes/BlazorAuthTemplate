@@ -2,13 +2,14 @@
 
 namespace Shared.Dtos.StakeHolders
 {
-    public class StakeHolderDto : IHasId
+    public class StakeHolderDto :IModelDto
     {
         public Guid Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Area { get; set; } = string.Empty;
         public string Name {  get; set; } = string.Empty;
+        public int Order { get; set; }
     }
     public class CreateStakeHolder : StakeHolderDto
     {

@@ -1,0 +1,232 @@
+﻿
+
+
+
+<MudStack Spacing="3">
+
+    <MudPaper Elevation="0" Class="pa-2 d-flex align-center gap-2" Outlined="true" Style="background-color: #FAFAFA;">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Default" Class="ml-2" />
+        <MudTextField T="string" ValueChanged="OnNameFilter" Value="@_nameFilter"
+                      Placeholder="Search by Name, Vendor Code, Contact or Email..."
+                      Variant="Variant.Text"
+                      Adornment="Adornment.None"
+                      Class="flex-grow-1"
+                      Immediate="true"
+                      Margin="Margin.Dense" />
+
+        @if (!string.IsNullOrEmpty(_nameFilter))
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => OnNameFilter(string.Empty))" />
+        }
+    </MudPaper>
+
+    <TemplateCard2 TValue="SupplierDto"
+                   Title="Suppliers Master Data"
+                   Items="FilteredItems"
+                   Model="Model"
+                   IsLoading="_loading"
+                   HasOrder="false"
+                   Edit="StartEdit"
+                   Delete="DeleteAsync"
+                   Submit="Submit"
+                   Cancel="Cancel"
+                   DisableAddEdit="false"
+                   GroupBy="@(x => x.SupplierCurrency)">
+
+        <GroupHeader Context="item">
+            <div class="d-flex align-center mt-4 mb-2 ml-1">
+                <MudIcon Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" Size="Size.Small" Class="mr-2" />
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Style="font-weight:700; letter-spacing:1px;">
+                    @item.SupplierCurrency.ToString().ToUpper() SUPPLIERS
+                </MudText>
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="ml-2">
+                    @FilteredItems.Count(x => x.SupplierCurrency == item.SupplierCurrency)
+                </MudChip>
+            </div>
+            <MudDivider Class="mb-3" />
+        </GroupHeader>
+
+        <CustomHeaderButtons>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="StartCreate"
+                       Class="rounded-pill">
+                New Supplier
+            </MudButton>
+        </CustomHeaderButtons>
+
+        <FormContent Context="ctx">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="8">
+                    <TextField @bind-Value="ctx.Model.Name" Label="Vendor Name" ValidateAsync="@ctx.ValidateAsync" For="@(() => ctx.Model.Name)" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <TextField @bind-Value="ctx.Model.NickName" Label="Short Name / Alias" ValidateAsync="@ctx.ValidateAsync" For="@(() => ctx.Model.NickName)" />
+                </MudItem>
+
+                <MudItem xs="6" sm="4">
+                    <TextField @bind-Value="ctx.Model.VendorCode" Label="Vendor Code (SAP)" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.QrCode" ValidateAsync="@ctx.ValidateAsync" For="@(() => ctx.Model.VendorCode)" />
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudSelect T="CurrencyEnum" Label="Currency" AnchorOrigin="Origin.BottomCenter" @bind-Value="ctx.Model.SupplierCurrency" For="@(() => ctx.Model.SupplierCurrency)" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var curr in CurrencyEnum.List.Where(x => x != CurrencyEnum.None))
+                        {
+                            <MudSelectItem Value="@curr">@curr.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="2">
+                    <TextField @bind-Value="ctx.Model.TaxCodeLD" Label="Tax Code LD" For="@(() => ctx.Model.TaxCodeLD)" />
+                </MudItem>
+                <MudItem xs="6" sm="2">
+                    <TextField @bind-Value="ctx.Model.TaxCodeLP" Label="Tax Code LP" For="@(() => ctx.Model.TaxCodeLP)" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.ContactName" Label="Contact Person" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.ContactEmail" Label="Email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" ValidateAsync="@ctx.ValidateAsync" For="@(() => ctx.Model.ContactEmail)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.PhoneNumber" Label="Phone" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.Address" Label="Address" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" />
+                </MudItem>
+            </MudGrid>
+        </FormContent>
+
+        <MainContent Context="item">
+            <div class="d-flex flex-column w-100">
+                <div class="d-flex justify-space-between align-start">
+                    <div class="d-flex align-center gap-2">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@item.NickName</MudText>
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" Style="font-weight:bold;">
+                            @item.VendorCode
+                        </MudChip>
+                    </div>
+                </div>
+
+                <MudText Typo="Typo.body2" Class="mb-2" Style="color: #546E7A;">
+                    @item.Name
+                </MudText>
+
+                <div class="d-flex flex-wrap gap-4 mt-1">
+                    @if (!string.IsNullOrEmpty(item.ContactName))
+                    {
+                        <div class="d-flex align-center gap-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Default" style="opacity:0.6" />
+                            <MudText Typo="Typo.caption">@item.ContactName</MudText>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(item.ContactEmail))
+                    {
+                        <div class="d-flex align-center gap-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Color="Color.Default" style="opacity:0.6" />
+                            <MudText Typo="Typo.caption">@item.ContactEmail</MudText>
+                        </div>
+                    }
+                </div>
+            </div>
+        </MainContent>
+
+    </TemplateCard2>
+</MudStack>
+
+@code {
+    // --- ESTADO ---
+    private List<SupplierDto> _items = new();
+    private bool _loading = true;
+    private SupplierDto Model = null!;
+    private string _nameFilter = string.Empty;
+
+    // --- FILTRADO ---
+    private List<SupplierDto> FilteredItems => string.IsNullOrEmpty(_nameFilter)
+        ? _items
+        : _items.Where(x =>
+            (x.Name?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.NickName?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.VendorCode?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.ContactEmail?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false)
+          ).ToList();
+
+    private void OnNameFilter(string value) => _nameFilter = value;
+
+    // --- CARGA DE DATOS ---
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var result = await HttpService.PostAsync<GetAllSuppliers, GeneralDto<List<SupplierDto>>>(new GetAllSuppliers());
+        if (result.Succeeded)
+        {
+            _items = result.Data ?? new();
+        }
+        _loading = false;
+    }
+
+    // --- CRUD ---
+    private void StartCreate()
+    {
+        Model = new CreateSupplier
+        {
+            Id = Guid.Empty,
+
+        };
+    }
+
+    private async Task StartEdit(SupplierDto item)
+    {
+        var result = await HttpService.PostAsync<GetSupplierById, GeneralDto<EditSupplier>>(new GetSupplierById() { Id = item.Id });
+        if (result.Succeeded)
+        {
+            Model = result.Data!;
+            return;
+        }
+        // Mapeo manual rápido para la edición
+        
+    }
+
+    private void Cancel() => Model = null!;
+
+    private async Task Submit()
+    {
+        GeneralDto result = await HttpService.PostAsync<SupplierDto, GeneralDto>(Model);
+
+
+        if (result.Succeeded)
+        {
+
+            Model = null!;
+            await LoadDataAsync();
+        }
+
+    }
+
+    private async Task DeleteAsync(SupplierDto item)
+    {
+        var parameters = new DialogParameters<DialogTemplate>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete '{item.NickName}'? This implies deleting historical data linked to it." },
+            { x => x.ButtonText, "Delete" },
+            { x => x.Color, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Deletion", parameters, new DialogOptions { MaxWidth = MaxWidth.ExtraSmall });
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            var deleteRes = await HttpService.PostAsync<DeleteSupplier, GeneralDto>(new DeleteSupplier { Id = item.Id });
+            if (deleteRes.Succeeded)
+            {
+               
+                await LoadDataAsync();
+            }
+            
+        }
+    }
+}

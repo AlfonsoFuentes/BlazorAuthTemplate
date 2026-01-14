@@ -1,0 +1,126 @@
+﻿
+@using Shared.Dtos.Projects._2._Plannings.Communications
+@using Shared.Enums
+
+<MudItem xs="12" sm="6" md="4">
+    <MudCard Elevation="2" Class="rounded-lg hover-scale" Style="@($"border-top: 4px solid {GetBorderColor()};")">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                @* ✅ CORRECCIÓN: Usamos la Inicial del Nombre para no repetir iconos *@
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled">
+                    <b>@(string.IsNullOrEmpty(Item.Name) ? "?" : Item.Name.Substring(0, 1).ToUpper())</b>
+                </MudAvatar>
+            </CardHeaderAvatar>
+
+            <CardHeaderContent>
+                <MudTooltip Text="@Item.Name" Arrow="true" Placement="Placement.Top">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; height: 3.6em; line-height: 1.8em;">
+                        <b>@Item.Name</b>
+                    </MudText>
+                </MudTooltip>
+
+                @* ✅ FLUJO DE INFORMACIÓN (Aquí dejamos los iconos explicativos) *@
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mt-1">
+
+                    @* 1. METHOD (Type) *@
+                    <MudTooltip Text="@Item.Type.GetDescription()" Arrow="true" Placement="Placement.Top">
+                        <MudIcon Icon="@Item.Type.GetIcon()" Color="Color.Primary" Size="Size.Small" />
+                    </MudTooltip>
+
+                    @* Separador *@
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" Color="Color.Default" Style="opacity: 0.5;" />
+
+                    @* 2. FORMAT (Artifact) *@
+                    <MudTooltip Text="@Item.Artifact.GetDescription()" Arrow="true" Placement="Placement.Top">
+                        <MudIcon Icon="@Item.Artifact.GetIcon()" Color="Color.Secondary" Size="Size.Small" />
+                    </MudTooltip>
+
+                </MudStack>
+            </CardHeaderContent>
+
+            <CardHeaderActions>
+                @if (!DisableActions)
+                {
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                        <MudMenuItem OnClick="OnEditClick">Edit</MudMenuItem>
+                        <MudMenuItem OnClick="OnDeleteClick">Delete</MudMenuItem>
+                    </MudMenu>
+                }
+            </CardHeaderActions>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudStack Spacing="2">
+                @* --- LOGICA CENTRAL: Periodicidad vs Trigger --- *@
+                @if (IsPeriodic)
+                {
+                    <MudText Typo="Typo.body2">
+                        <b>Frequency:</b> Every @Item.DaysOffsetOrFrequency days
+                    </MudText>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Text" NoIcon="true" Class="pa-2">
+                        Linked to: <b>@Item.SelectedGanttTask?.Name</b>
+                        <br />
+                        <MudText Typo="Typo.caption">
+                            Offset: @(Item.DaysOffsetOrFrequency > 0 ? $"+{Item.DaysOffsetOrFrequency} days" : $"{Item.DaysOffsetOrFrequency} days")
+                        </MudText>
+                    </MudAlert>
+                }
+
+                <MudDivider Light="true" />
+
+                @* --- AUDIENCIA --- *@
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Color="Color.Default" />
+
+                    @if (Item.Receivers != null && Item.Receivers.Any())
+                    {
+                        <MudAvatarGroup Max="4" Spacing="2" MaxColor="Color.Default">
+                            @foreach (var receiver in Item.Receivers)
+                            {
+                                <MudTooltip Text="@($"{receiver.Name} ({receiver.Role})")">
+                                    <MudAvatar Color="Color.Secondary" Size="Size.Small">
+                                        @receiver.Name.Substring(0, 1).ToUpper()
+                                    </MudAvatar>
+                                </MudTooltip>
+                            }
+                        </MudAvatarGroup>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">No receivers</MudText>
+                    }
+                </MudStack>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+</MudItem>
+
+<style>
+    .hover-scale {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        
+</style>
+
+@code {
+    [Parameter] public CommunicationDto Item { get; set; } = new();
+    [Parameter] public bool DisableActions { get; set; }
+    [Parameter] public EventCallback<CommunicationDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<CommunicationDto> OnDelete { get; set; }
+
+    private bool IsPeriodic => Item.Trigger == CommunicationTrigger.Periodic;
+
+    private async Task OnEditClick() => await OnEdit.InvokeAsync(Item);
+    private async Task OnDeleteClick() => await OnDelete.InvokeAsync(Item);
+
+    // Helpers Visuales
+    private string GetBorderColor() => IsPeriodic ? "var(--mud-palette-info)" : "var(--mud-palette-warning)";
+
+    // --- UI HELPERS (ICONOS) ---
+    
+}

@@ -1,12 +1,12 @@
 ﻿using Server.DataContext;
 using Server.Interfaces.EndPoints;
-using Server.Services;
 using Server.Services.Repositories;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
-using Shared.Dtos.Starts.Qualitys;
+using Shared.Dtos.StakeHolders;
 using Shared.Dtos.Starts.Requirements;
-using Shared.Dtos.Starts.Scopes;
+using Shared.Enums.DashBoardTable;
+using Shared.Enums.RequirementPrioritys;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
 {
 
@@ -16,6 +16,12 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
         void MapFromDto(RequirementDto dto, Requirement row)
         {
             row.Name = dto.Name;
+            row.Order = dto.Order;
+            row.ProjectId = dto.ProjectId;
+            row.ResponsibleId = dto.Responsible?.Id;
+            row.Type = dto.Type.Name;
+            row.RequestedById = dto.RequestedBy?.Id;
+            row.Priority = dto.Priority.Name;
 
         }
         static RequirementDto MapToDto(Requirement row)
@@ -25,6 +31,18 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
             dto.Name = row.Name;
             dto.Order = row.Order;
             dto.ProjectId = row.ProjectId;
+            dto.Type = row.TypeEnum;
+            dto.RequestedBy = row.RequestedById.HasValue ? new StakeHolderDto
+            {
+                Id = row.RequestedBy!.Id,
+                Name = row.RequestedBy.Name
+            } : null;
+            dto.Priority = row.PriorityEnum;
+            dto.Responsible = row.ResponsibleId.HasValue ? new StakeHolderDto
+            {
+                Id = row.Responsible!.Id,
+                Name = row.Responsible.Name
+            } : null;
             return dto;
 
         }
@@ -45,21 +63,19 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                 if (project != null)
                     project.LastModifiedOn = DateTime.UtcNow;
 
-                var cacheKeyAll = $"{typeof(GetAllRequirements).Name}{dto.ProjectId}";
-               
 
-                var maxOrder = await getNextOrder.GetNextOrderAsync<Requirement>(cacheKeyAll, dto.ProjectId);
-   
-                row.Order = maxOrder;
+
+                var maxOrder = await _context.Requirements
+                  .Where(x => x.ProjectId == dto.ProjectId)
+                  .MaxAsync(x => (int?)x.Order) ?? 0;
+
+                row.Order = maxOrder + 1;
 
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Requirements);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -90,12 +106,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyId = $"{typeof(GetRequirementById).Name}-{dto.Id}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyAll = $"{typeof(GetAllRequirements).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Requirements);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -120,6 +132,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                 var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Requirements
+                    .Include(x => x.RequestedBy)
+                    .Include(x => x.Responsible)
 
                   .AsSplitQuery()
                   .AsNoTracking()
@@ -146,10 +160,12 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
             // ✅ Obtener todos
             app.MapPost("GetAllRequirements", async (GetAllRequirements dto, IAppDbContext _context) =>
             {
-                var cacheKey = $"{typeof(GetAllRequirements).Name}{dto.ProjectId}";
+                var cacheKey = $"{typeof(GetAllRequirements).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Requirements
+                    .Include(x => x.RequestedBy)
+                    .Include(x => x.Responsible)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable()
@@ -190,11 +206,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                         i++;
                     }
                     await _context.SaveChangesAsync();
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllRequirements).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Requirements);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -213,10 +226,10 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
             // ✅ Validar nombre único
             app.MapPost("ValidateRequirementName", async (ValidateRequirementName dto, IAppDbContext _context) =>
             {
-                var cacheKeyAll = $"{typeof(GetAllRequirements).Name}{dto.ProjectId}";
+                var cacheKeyAll = $"{typeof(GetAllRequirements).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
-                    return await _context.Requirements
+                    return await _context.Requirements.Where(x => x.ProjectId == dto.ProjectId)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable().ToListAsync();

@@ -22,7 +22,7 @@ namespace CllientMudBlazor.Pages.Projects.Managements.Approves
 
         override protected async Task OnInitializedAsync()
         {
-            var result = await HttpService.PostAsync<GetProjectToApproveById, GeneralDto<ApproveProject>>(new GetProjectToApproveById()
+            var result = await HttpService.PostAsync<GetProjectToApproveById, GeneralDto<ApproveProjectStart>>(new GetProjectToApproveById()
             {
                 Id = Model.Id
             });
@@ -35,7 +35,7 @@ namespace CllientMudBlazor.Pages.Projects.Managements.Approves
         private async Task Submit()
         {
             GeneralDto result = new();
-            result = await HttpService.PostAsync<ApproveProject, GeneralDto>(Model);
+            result = await HttpService.PostAsync<ApproveProjectStart, GeneralDto>(Model);
 
 
 
@@ -52,6 +52,6 @@ namespace CllientMudBlazor.Pages.Projects.Managements.Approves
         private void Cancel() => MudDialog.Cancel();
 
         [Parameter]
-        public ApproveProject Model { get; set; } = new();
+        public ApproveProjectStart Model { get; set; } = new();
     }
 }

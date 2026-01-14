@@ -1,0 +1,178 @@
+﻿@inherits ComponentBase
+
+@using Shared.Dtos.Projects._2._Plannings.Communications
+@using Shared.Enums
+
+
+<TemplateDialog TValue="CommunicationDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        @* --- DEFINICIÓN (Igual que antes) --- *@
+        <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Definition</MudText>
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="ctx.Model.Name"
+                           Label="Name *"
+                           For="@(() => ctx.Model.Name)"
+                           ValidateAsync="ctx.ValidateAsync" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <SelectEnum @bind-Value="ctx.Model.Type" Label="Method" Change="OnTypeChanged" For="@(() => ctx.Model.Type)" ValidateAsync="ctx.ValidateAsync" />
+                <MudPaper Class="pa-2 mt-1 d-flex align-center gap-2" Elevation="0" Outlined="true" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudIcon Icon="@ctx.Model.Type.GetIcon()" Color="Color.Secondary" Size="Size.Small" />
+
+                    <div>
+                        <MudText Typo="Typo.caption"><b>@ctx.Model.Type:</b>@ctx.Model.Type.GetDescription()</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <SelectEnum TItem="ArtifactType"
+                            Label="Artifact"
+                            Items="@AvailableArtifacts"
+                            @bind-Value="ctx.Model.Artifact"
+                            For="@(() => ctx.Model.Artifact)" ValidateAsync="ctx.ValidateAsync"
+                            Disable="@(ctx.Model.Type == ActionCategory.None)" />
+
+                @if (ctx.Model.Artifact != ArtifactType.None)
+                {
+                    <MudPaper Class="pa-2 mt-1 d-flex align-center gap-2" Elevation="0" Outlined="true" Style="background-color: var(--mud-palette-background-grey);">
+                        <MudIcon Icon="@ctx.Model.Artifact.GetIcon()" Color="Color.Secondary" Size="Size.Small" />
+
+                        <MudText Typo="Typo.caption">
+                            @ctx.Model.Artifact.GetDescription()
+                        </MudText>
+                    </MudPaper>
+                }
+            </MudItem>
+
+
+
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        @* --- TRIGGER LOGIC --- *@
+        <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Trigger Logic</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+            <Switch @bind-Value="IsPeriodic" Label="Is Periodic (Calendar Based)?" Color="Color.Secondary" />
+        </MudStack>
+
+        <MudGrid>
+            @if (IsPeriodic)
+            {
+                @* ✅ TASK 3: Frecuencia Amigable (Selector + Custom) *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Frequency" @bind-Value="SelectedFrequency" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem Value="0">Custom (Define days)</MudSelectItem>
+                        @foreach (var freq in Frequencies)
+                        {
+                            <MudSelectItem Value="@freq.Key">@freq.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    @* Si es Custom, habilitamos el input manual *@
+                    <IntNumericField @bind-Value="ctx.Model.DaysOffsetOrFrequency"
+                                     Label="Interval (Days)"
+                                     For="@(() => ctx.Model.DaysOffsetOrFrequency)"
+                                     ValidateAsync="ctx.ValidateAsync"
+                                     HideSpinButtons="true"
+                                     Disabled="@(SelectedFrequency != 0)" />
+                </MudItem>
+            }
+            else
+            {
+                @* LÓGICA VINCULADA A TAREA (GANTT) *@
+                <MudItem xs="12" sm="6">
+                    @if (FixedTask != null)
+                    {
+                        <TextField Value="@FixedTask.Name" Label="Linked Gantt Task" Disabled="true" />
+                    }
+                    else
+                    {
+                        @* ✅ TASK 2: Buscador con WBS *@
+                        <Autocomplete TValue="GanttDto"
+                                      Label="Search Task (Name or WBS) *"
+                                      @bind-Value="ctx.Model.SelectedGanttTask"
+                                      SearchFunc="@SearchTasks"
+                                      ToStringFunc="@(t => t == null ? null : $"{t.WbsCode} - {t.Name}")"
+                                      For="@(() => ctx.Model.SelectedGanttTask)"
+                                      ValidateAsync="ctx.ValidateAsync">
+
+                        </Autocomplete>
+                    }
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="CommunicationTrigger" Label="When to trigger?" @bind-Value="Model.Trigger">
+                        @foreach (var trigger in AvailableTriggers)
+                        {
+                            <MudSelectItem Value="@trigger">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@trigger.GetIcon()" Size="Size.Small" Class="mr-2" />
+                                    <MudText>@trigger.GetDescription()</MudText>
+                                </div>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* ✅ TASK 1: Cambio de Label y Ayuda para Lag/Lead *@
+                <MudItem xs="12">
+                    <IntNumericField @bind-Value="ctx.Model.DaysOffsetOrFrequency"
+                                     Label="Lag / Lead Time (Days)"
+                                     For="@(() => ctx.Model.DaysOffsetOrFrequency)"
+                                     ValidateAsync="ctx.ValidateAsync"
+                                     HelperText="Negative for 'Days Before', Positive for 'Days After'."
+                                     HideSpinButtons="true" />
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        @* --- AUDIENCIA (INTEGRACIÓN NUEVA) --- *@
+        <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Audience</MudText>
+
+        <MudGrid>
+            <MudItem xs="12">
+                @* ✅ TU COMPONENTE PERSONALIZADO *@
+                <AutoCompleteIconButton TValue="StakeHolderSimpleDto"
+                                        Label="Add Stakeholder"
+                                        Value="SelectedStakeholderToAdd"
+                                        ValueChanged="OnStakeholderSelected"
+                                        SearchFunc="SearchStakeHolder"
+                                        ToStringFunc="@(e => e == null ? null : $"{e.Name} ({e.Role})")"
+                                        Icon="@Icons.Material.Filled.PersonAdd"
+                                        ToolTip="Create new Stakeholder"
+                                        ButtonClick="AddStakeHolder"
+                                        ValidateAsync="ctx.ValidateAsync"
+                                        Clearable="true" />
+            </MudItem>
+
+            <MudItem xs="12">
+                @* Lista de seleccionados (Chips) *@
+                <div class="d-flex flex-wrap gap-1 border rounded pa-2" style="min-height: 50px; background-color: var(--mud-palette-background-grey);">
+                    @if (!ctx.Model.Receivers.Any())
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="pa-2">No receivers added yet.</MudText>
+                    }
+
+                    @foreach (var receiver in ctx.Model.Receivers)
+                    {
+                        <MudChip T="string" Size="Size.Small" OnClose="() => RemoveReceiver(receiver)" Color="Color.Primary" Variant="Variant.Outlined">
+                            @receiver.Name
+                        </MudChip>
+                    }
+                </div>
+                <MudText Color="Color.Error" Typo="Typo.caption">
+                    <ValidationMessage For="@(() => ctx.Model.Receivers.Count)" style="color:red; font-size:x-small;" />
+                </MudText>
+            </MudItem>
+        </MudGrid>
+
+    </Content>
+</TemplateDialog>

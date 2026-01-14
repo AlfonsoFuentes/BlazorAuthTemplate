@@ -1,0 +1,49 @@
+﻿<TemplateCard2 TValue="KnownRiskDto"
+               Title="@Title"
+               Items="@_items"
+               Model="@Model"
+               IsLoading="_loading"
+               Create="StartCreate"
+               Edit="StartEdit"
+               Delete="DeleteAsync"
+               Submit="Submit"
+               Cancel="Cancel"
+               GoUp="OrderUp"
+               DisableAddEdit=@DisableAddEdit
+               GoDown="OrderDown">
+
+    <FormContent Context="ctx">
+        <MudGrid>
+           
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                           Lines="3"
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)">
+                </TextField>
+            </MudItem>
+
+
+        </MudGrid>
+    </FormContent>
+
+    <MainContent Context="item">
+        <div class="d-flex align-center justify-space-between w-100">
+
+            <div class="d-flex align-center gap-3 overflow-hidden">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;" Class="text-truncate">@item.Name</MudText>
+            </div>
+
+            
+        </div>
+
+    </MainContent>
+
+</TemplateCard2>
+
+
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+}

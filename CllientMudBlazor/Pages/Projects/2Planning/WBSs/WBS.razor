@@ -1,0 +1,96 @@
+﻿
+
+
+<MudPaper Class="pa-4" Elevation="0">
+    <MudStack AlignItems="AlignItems.Start" Justify="Justify.FlexStart" Class="mb-4">
+        <MudText Typo="Typo.h5">Work Breakdown Structure</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Start" Class="mb-4">
+            <IconButton Color="Color.Secondary"
+                        ToolTip="Go Up"
+                        Icon="@Icons.Material.Filled.Upcoming"
+                        OnClick="HideTable" />
+            <IconButton Color="Color.Primary"
+                        ToolTip="Add Main task"
+                        Icon="@Icons.Material.Filled.Add"
+                        OnClick="OpenCreateRootTask" />
+        </MudStack>
+
+        <MudSpacer />
+
+    </MudStack>
+
+    @if (tasks == null)
+    {
+        <MudProgressCircular Class="mt-8" Indeterminate="true" />
+    }
+    else if (!tasks.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">
+            No tasks yet. Click "Add Root Task" to start.
+        </MudAlert>
+    }
+    else
+    {
+        <div class="wbs-container">
+            @foreach (var root in roots)
+            {
+                <WBSCardNodeV2 Task="root"
+                               Level="0"
+                               GetAll="LoadTasks"
+                               AllTasks="tasks"
+                               OnAdd="@( () => OpenCreateChildInline(root.Id) )"
+                               OnDelete="DeleteTask"
+                               OnMoveDown="MoveTaskDown"
+                               OnMoveUp="MoveTaskUp"
+                               OnIndentLeft="IndentTaskLeft"
+                               OnIndentRight="IndentTaskRight" />
+            }
+        </div>
+    }
+</MudPaper>
+@code {
+
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+
+    // 🔹 Filtro gestionado aquí (como querías)
+
+    [Parameter]
+    public EventCallback HideTable { get; set; }
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+}
+<style>
+    .wbs-container {
+        margin-top: 16px;
+    }
+
+    @@keyframes flash-highlight {
+        from {
+            /* Creamos un resplandor alrededor de la tarjeta */
+            box-shadow: 0 0 20px rgba(var(--mud-palette-primary-rgb), 0.8);
+            border: 2px solid var(--mud-palette-primary);
+        }
+
+        to {
+            box-shadow: 0 0 0px transparent;
+            border: 1px solid transparent;
+        }
+    }
+
+    .highlight-new-task {
+        animation: flash-highlight 2s ease-out;
+        border-radius: 4px;
+        z-index: 10; /* Asegura que se vea por encima de las demás */
+    }
+
+    .wbs-budget-badge {
+        background-color: var(--mud-palette-success-hover);
+        color: var(--mud-palette-success-darken);
+        padding: 0 4px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+</style>

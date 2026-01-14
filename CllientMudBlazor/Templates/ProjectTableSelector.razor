@@ -1,0 +1,110 @@
+﻿@typeparam TItem where TItem : struct, Enum
+@using Shared.ExtensionsMethods
+@using Shared.Enums
+
+<MudGrid Class="mt-2" Spacing="3">
+    @foreach (var item in Enum.GetValues<TItem>()
+        .Select((e, i) => new { Index = i + 1, Value = e, DisplayName = e.GetDescription() }))
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudPaper Elevation="0" Outlined="true"
+                      Class="pa-4 d-flex align-center gap-4 cursor-pointer hover-card relative mud-ripple"
+                      @onclick="@(() => OnTableSelected.InvokeAsync(item.Value))">
+
+                <MudAvatar Color="Color.Info" Variant="Variant.Filled" Size="Size.Medium" Class="elevation-0">
+                    <MudIcon Icon="@GetIcon(item.Value)" Size="Size.Small" />
+                </MudAvatar>
+
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+                    <MudText Typo="Typo.subtitle2" Class="text-truncate" Style="font-weight: 700; color: var(--mud-palette-text-primary);">
+                        @item.DisplayName
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                        Section @item.Index
+                    </MudText>
+                </div>
+
+                <MudIcon Icon="@Icons.Material.Rounded.ChevronRight" Size="Size.Small" Color="Color.Default" style="opacity: 0.5;" />
+
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<style>
+    .hover-card {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid var(--mud-palette-lines-default);
+        border-left: 4px solid transparent;
+    }
+
+        .hover-card:hover {
+            background-color: var(--mud-palette-background-grey);
+            border-color: var(--mud-palette-primary);
+            border-left: 4px solid var(--mud-palette-primary);
+            transform: translateX(4px);
+        }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback<TItem> OnTableSelected { get; set; }
+
+    // 🔥 MAPEO INTELIGENTE DE ICONOS
+    // Asigna un icono visual a cada elemento de tu Enum DashBoardsStartTable
+    public static string GetIcon(Enum value)
+    {
+        return value switch
+        {
+            // =================================================
+            // 🏁 FASE 1: START (Investment Definition)
+            // =================================================
+            DashBoardsStartTable.StakeHolders => Icons.Material.Filled.Groups,          // Gente/Grupos
+            DashBoardsStartTable.BackGrounds => Icons.Material.Filled.HistoryEdu,      // Contexto histórico
+            DashBoardsStartTable.Objectives => Icons.Material.Filled.TrackChanges,    // Diana/Objetivo
+            DashBoardsStartTable.Benefits => Icons.Material.Filled.TrendingUp,      // Gráfica subiendo
+            DashBoardsStartTable.ExpertJudgment => Icons.Material.Filled.Psychology,      // Cerebro/Experto
+
+            DashBoardsStartTable.Requirements => Icons.Material.Filled.ListAlt,         // Lista detallada
+            DashBoardsStartTable.Scopes => Icons.Material.Filled.Architecture,    // Plano/Alcance
+            DashBoardsStartTable.Deliverables => Icons.Material.Filled.Inventory2,      // Caja entregable
+            DashBoardsStartTable.AcceptanceCriterias => Icons.Material.Filled.FactCheck,      // Verificación
+
+            DashBoardsStartTable.Constrainsts => Icons.Material.Filled.LinkOff,         // Cadena/Limitación
+            DashBoardsStartTable.Assumptions => Icons.Material.Filled.Lightbulb,       // Idea/Supuesto
+            DashBoardsStartTable.Quality => Icons.Material.Filled.HighQuality,     // HQ
+
+            DashBoardsStartTable.KnownRisks => Icons.Material.Filled.WarningAmber,    // Alerta triangular
+            DashBoardsStartTable.RiskMatrix => Icons.Material.Filled.GridOn,          // Matriz/Rejilla
+            DashBoardsStartTable.LearnedLessons => Icons.Material.Filled.School,          // Gorro graduación
+            DashBoardsStartTable.Investment => Icons.Material.Filled.MonetizationOn,  // Dinero
+
+            // =================================================
+            // 📋 FASE 2: PLANNING (Project Management Plan)
+            // =================================================
+
+            // Resources needed -> Ingenieros/Equipo trabajando
+            DashBoardsPlanningTable.Resources => Icons.Material.Filled.Engineering,
+
+            // Gantt chart -> Línea de tiempo / Cronograma
+            DashBoardsPlanningTable.Gantt => Icons.Material.Filled.ViewTimeline,
+
+            // Monthly expend -> Pagos / Flujo de caja
+            DashBoardsPlanningTable.Expend => Icons.Material.Filled.Payments,
+
+            // Work breakdown structure (WBS) -> Árbol jerárquico
+            DashBoardsPlanningTable.WBS => Icons.Material.Filled.AccountTree,
+
+            // Adquisition Plan -> Carrito de compras / Procura
+            DashBoardsPlanningTable.Adquisition => Icons.Material.Filled.ShoppingCart,
+
+            // Communication Plan -> Megáfono / Difusión
+            DashBoardsPlanningTable.Communication => Icons.Material.Filled.Campaign,
+
+            // =================================================
+            // DEFAULT (Por si acaso)
+            // =================================================
+            _ => Icons.Material.Filled.Circle
+        };
+    }
+}

@@ -1,11 +1,12 @@
 ﻿using Server.DataContext;
+using Server.Domain.CommonEntities.BudgetItems;
 using Server.Interfaces.EndPoints;
-using Server.Services;
 using Server.Services.Repositories;
+using Shared.Dtos.BudgetItems;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
-using Shared.Dtos.Starts.Constrainsts;
 using Shared.Dtos.Starts.KnownRisks;
+using Shared.Enums.DashBoardTable;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
 {
 
@@ -24,6 +25,21 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
             dto.Name = row.Name;
             dto.Order = row.Order;
             dto.ProjectId = row.ProjectId;
+            if (row.KnownRiskBudgetItems != null)
+            {
+                dto.LinkedInvestments = row.KnownRiskBudgetItems
+
+                        .Select(x => new BudgetItemDto
+                        {
+                            Id = x.BudgetItem.Id,
+                            Name = x.BudgetItem.Name,
+                            Quantity = x.BudgetItem.Quantity,
+                            UnitPriceUSD = x.BudgetItem.UnitPriceUSD,
+                            Order = x.BudgetItem.Order,
+                            Category = x.BudgetItem.Category
+
+                        }).ToList();
+            }
             return dto;
 
         }
@@ -44,20 +60,19 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                 if (project != null)
                     project.LastModifiedOn = DateTime.UtcNow;
 
-                var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
-                
-                var maxOrder = await getNextOrder.GetNextOrderAsync<KnownRisk>(cacheKeyAll, dto.ProjectId);
-            
+                var maxOrder = await _context.KnownRisks
+                    .Where(x => x.ProjectId == dto.ProjectId)
+                    .MaxAsync(x => (int?)x.Order) ?? 0;
+
+                row.Order = maxOrder + 1;
+
                 row.Order = maxOrder;
 
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.KnownRisks);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -88,12 +103,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyId = $"{typeof(GetKnownRiskById).Name}-{dto.Id}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.KnownRisks);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -118,7 +129,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                 var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.KnownRisks
-
+                   .Include(x => x.KnownRiskBudgetItems)
+                .ThenInclude(r => r.BudgetItem)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable()
@@ -144,13 +156,15 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
             // ✅ Obtener todos
             app.MapPost("GetAllKnownRisks", async (GetAllKnownRisks dto, IAppDbContext _context) =>
             {
-                var cacheKey = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
+                var cacheKey = $"{typeof(GetAllKnownRisks).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.KnownRisks
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable()
+                  .Include(x => x.KnownRiskBudgetItems)
+                .ThenInclude(r => r.BudgetItem)
                   .Where(x => x.ProjectId == dto.ProjectId)
                   .OrderBy(x => x.Order)
                   .ToListAsync();
@@ -166,6 +180,29 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                     Data = dtos
                 });
             });
+            //app.MapPost("GetBudgetItemsByKnownRiskId", async (GetBudgetItemsByKnownRiskId req, IAppDbContext _context) =>
+            //{
+            //    // Vamos a la tabla intermedia KnownRiskBudgetItem
+            //    var items = await _context.Set<KnownRiskBudgetItem>()
+            //        .Where(x => x.KnownRiskId == req.KnownRiskId && !x.IsDeleted)
+            //        .Include(x => x.BudgetItem) // Traemos al padre BudgetItem (Polimorfismo)
+            //        .Select(x => x.BudgetItem)
+            //        .AsNoTracking()
+            //        .ToListAsync();
+
+            //    // Mapeamos a un DTO genérico
+            //    var dtos = items.Select(x => new BudgetItemDto
+            //    {
+            //        Id = x.Id,
+            //        Name = x.Name,
+            //        BudgetUSD = (double)x.BudgetUSD,
+            //        // Nomenclatore lo sacas según tu lógica (x.Letter + x.OrderList...)
+            //        Nomenclatore = x.Letter + "...",
+            //        CategoryName = x.GetType().Name // "Testing", "Structural", etc.
+            //    }).ToList();
+
+            //    return Results.Ok(new GeneralDto<List<BudgetItemDto>> { Succeeded = true, Data = dtos });
+            //});
             app.MapPost("DeleteKnownRisk", async (DeleteKnownRisk dto, IAppDbContext _context) =>
             {
                 var row = await _context.KnownRisks.FindAsync(dto.Id);
@@ -188,11 +225,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                         i++;
                     }
                     await _context.SaveChangesAsync();
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.KnownRisks);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -211,10 +245,10 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
             // ✅ Validar nombre único
             app.MapPost("ValidateKnownRiskName", async (ValidateKnownRiskName dto, IAppDbContext _context) =>
             {
-                var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
+                var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
-                    return await _context.KnownRisks
+                    return await _context.KnownRisks.Where(x => x.ProjectId == dto.ProjectId)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable().ToListAsync();
@@ -262,7 +296,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.KnownRisks
                 {
 
 
-                    var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}{dto.ProjectId}";
+                    var cacheKeyAll = $"{typeof(GetAllKnownRisks).Name}-{dto.ProjectId}";
 
                     _context.InvalidateCache(cacheKeyAll);
                     return Results.Ok(new GeneralDto

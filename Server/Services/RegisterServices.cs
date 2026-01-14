@@ -80,7 +80,7 @@ namespace Server.Services
             builder.Services.AddEndPoints();
             builder.Services.AddLazyCache();
             builder.Services.AddTransient<ITokenService, TokenService>();
-            builder.Services.AddScoped<IRepositoryInvestmentCalculation, RepositoryInvestmentCalculation>();
+            //builder.Services.AddScoped<IRepositoryInvestmentCalculation, RepositoryInvestmentCalculation>();
             builder.Services.AddScoped<IRepositoryGetNextOrder, RepositoryGetNextOrder>();
         
             return builder;

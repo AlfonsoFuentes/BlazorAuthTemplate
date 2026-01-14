@@ -1,15 +1,9 @@
 ﻿using Server.Domain.CommonEntities.BudgetItems;
-using Server.Domain.CommonEntities.BudgetItems.Commons;
-using Server.Domain.CommonEntities.BudgetItems.EngineeringContingency;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams.Equipments;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams.Instruments;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams.Pipings;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams.Valves;
 using Shared.Enums.ProjectNeedTypes;
 
 namespace Server.Domain.CommonEntities
 {
-    public class Project : Entity,ITennant
+    public class Project : Entity, ITennant
     {
 
         public string TenantId { get; set; } = string.Empty;
@@ -19,15 +13,7 @@ namespace Server.Domain.CommonEntities
 
         public DateTime? StartDate { get; set; }
 
-        public static Project Create(int Order)
-        {
-            return new Project()
-            {
-                Id = Guid.NewGuid(),
-                Order = Order,
-                Status = ProjectStatusEnum.Created.Id,
-            };
-        }
+
         public int ProjectNeedType { get; set; }
         public int CostCenter { get; set; }
         public int Focus { get; set; }
@@ -35,35 +21,36 @@ namespace Server.Domain.CommonEntities
         [NotMapped]
         public ProjectStatusEnum StatusEnum => ProjectStatusEnum.GetType(Status);
         public string ProjectNumber { get; set; } = string.Empty;
-
+        public List<ProjectDefinitionItem> DefinitionItems { get; set; } = new();
         public double PercentageEngineering { get; set; }
         public double PercentageContingency { get; set; }
         public double PercentageTaxProductive { get; set; }
         public bool IsProductiveAsset { get; set; } = true;
-
+        public int LastVisitedPhase { get; set; } = 1;
         #region Start Management
-        public List<BackGround> BackGrounds { get; set; } = new();
-        public List<Objective> Objectives { get; set; } = new();
+        //public List<BackGround> BackGrounds { get; set; } = new();
+        //public List<Objective> Objectives { get; set; } = new();
         public List<Requirement> Requirements { get; set; } = new();
-        public List<Scope> Scopes { get; set; } = new();
-        public List<AcceptanceCriteria> AcceptanceCriterias { get; set; } = new();
-        public List<Bennefit> Bennefits { get; set; } = new();
-        public List<Constrainst> Constrainsts { get; set; } = new();
-        public List<Assumption> Assumptions { get; set; } = new();
+        //public List<Scope> Scopes { get; set; } = new();
+        //public List<AcceptanceCriteria> AcceptanceCriterias { get; set; } = new();
+        //public List<Bennefit> Bennefits { get; set; } = new();
+        //public List<Constrainst> Constrainsts { get; set; } = new();
+        //public List<Assumption> Assumptions { get; set; } = new();
         public List<LearnedLesson> LearnedLessons { get; set; } = new();   //Esta no debe ser dependiente del projecto
         public List<ExpertJudgement> ExpertJudgements { get; set; } = new();
         public List<KnownRisk> KnownRisks { get; set; } = new();
         public List<Quality> Qualitys { get; set; } = new();
         public List<BudgetItem> BudgetItems { get; set; } = new();
         public List<StakeHolder> StakeHolders { get; } = [];
+        public List<RiskMatrix> RiskMatrixs { get; set; } = new();
         #endregion
         #region Timeline
-        public List<Deliverable> Deliverables { get; set; } = new();
-
+        //public List<Deliverable> Deliverables { get; set; } = new();
+        public virtual ICollection<GanttTask> GanttTasks { get; set; } = new List<GanttTask>();
 
         #endregion
-      
-   
+
+
         #region Communication
         public List<Communication> Communications { get; set; } = new();
         #endregion
@@ -75,72 +62,29 @@ namespace Server.Domain.CommonEntities
         //public List<Meeting> Meetings { get; set; } = new();
         public List<PurchaseOrder> PurchaseOrders { get; set; } = new();
         [NotMapped]
-        public List<PurchaseOrder> CapitalPurchaseOrders=> PurchaseOrders == null || PurchaseOrders.Count == 0 ? new() :
+        public List<PurchaseOrder> CapitalPurchaseOrders => PurchaseOrders == null || PurchaseOrders.Count == 0 ? new() :
             PurchaseOrders.Where(x => !x.IsAlteration).ToList();
         [NotMapped]
         public List<PurchaseOrder> AlterationPurchaseOrders => PurchaseOrders == null || PurchaseOrders.Count == 0 ? new() :
             PurchaseOrders.Where(x => x.IsAlteration).ToList();
         public List<Acquisition> Acquisitions { get; set; } = new();
-       
+
         public List<MonitoringLog> MonitoringLogs { get; set; } = new();
 
         [NotMapped]
-        public List<Alteration> Alterations => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Alteration>().ToList();
+        public List<BudgetItem> Expenses => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.Where(x => x.IsExpense).ToList();
+
         [NotMapped]
-        public List<Structural> Structurals => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Structural>().ToList();
+        public List<BudgetItem> Capital => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.Where(x => x.IsCapital).ToList();
+
         [NotMapped]
-        public List<Foundation> Foundations => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Foundation>().ToList();
+        public List<BudgetItem> Appropiation => [.. Expenses, .. Capital];
         [NotMapped]
-        public List<Equipment> Equipments => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Equipment>().ToList();
+        public decimal CapitalBudgetUSD => Capital == null || Capital.Count == 0 ? 0 : Capital.Sum(x => x.BudgetUSD);
+
         [NotMapped]
-        public List<Valve> Valves => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Valve>().ToList();
-        [NotMapped]
-        public List<Electrical> Electricals => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Electrical>().ToList();
-        [NotMapped]
-        public List<Pipe> Pipings => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Pipe>().ToList();
-        [NotMapped]
-        public List<Instrument> Instruments => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Instrument>().ToList();
-        [NotMapped]
-        public List<EHS> EHSs => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<EHS>().ToList();
-        [NotMapped]
-        public List<Painting> Paintings => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Painting>().ToList();
-        [NotMapped]
-        public List<Tax> Taxes => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Tax>().ToList();
-        [NotMapped]
-        public List<Testing> Testings => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Testing>().ToList();
-        [NotMapped]
-        public List<Contingency> Contingencys => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Contingency>().ToList();
-        [NotMapped]
-        public List<Engineering> EngineeringSalaries => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<Engineering>().ToList();
-        [NotMapped]
-        public List<EngineeringDesign> EngineeringDesigns => BudgetItems == null || BudgetItems.Count == 0 ? new() : BudgetItems.OfType<EngineeringDesign>().ToList();
-        [NotMapped]
-        public List<BudgetItem> Expenses => [.. Alterations];
-        [NotMapped]
-        public List<BudgetItem> Capital => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
-            ..Pipings,..Instruments,..EHSs,..Paintings,..Taxes,..Testings,..EngineeringDesigns];
-        [NotMapped]
-        public List<BudgetItem> CapitalWOTaxes => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
-            ..Pipings,..Instruments,..EHSs,..Paintings,..Testings,..EngineeringDesigns];
-        [NotMapped]
-        public List<BudgetItem> CapitalPlusContingencies => [..Foundations,..Structurals,..Equipments,..Valves,..Electricals,
-            ..Pipings,..Instruments,..EHSs,..Paintings,..Taxes,..Testings,..EngineeringDesigns, .. EngineeringContingencys];
-        [NotMapped]
-        public List<BudgetItem> EngineeringContingencys => [.. EngineeringSalaries, .. Contingencys];
-        [NotMapped]
-        public List<BudgetItem> Appropiation => [.. Expenses, .. Capital, .. EngineeringContingencys];
-        [NotMapped]
-        public double CapitalBudgetUSD => Capital == null || Capital.Count == 0 ? 0 : Capital.Sum(x => x.BudgetUSD);
-        [NotMapped]
-        public double CapitalWOTaxesBudgetUSD => CapitalWOTaxes == null || CapitalWOTaxes.Count == 0 ? 0 : CapitalWOTaxes.Sum(x => x.BudgetUSD);
-        [NotMapped]
-        public double ExpensesBudgetUSD => Expenses == null || Expenses.Count == 0 ? 0 : Expenses.Sum(x => x.BudgetUSD);
-        [NotMapped]
-        public double CompleteCapitalBudgetUSD => CapitalBudgetUSD + EngineeringContingencysBudgetUSD;
-        [NotMapped]
-        public double EngineeringContingencysBudgetUSD => EngineeringContingencys == null || EngineeringContingencys.Count == 0 ? 0 : EngineeringContingencys.Sum(x => x.BudgetUSD);
-        [NotMapped]
-        public double AppropiationBudgetUSD => CompleteCapitalBudgetUSD + ExpensesBudgetUSD;
+        public decimal ExpensesBudgetUSD => Expenses == null || Expenses.Count == 0 ? 0 : Expenses.Sum(x => x.BudgetUSD);
+
 
         //[NotMapped]
         //public List<BasicEquipmentItem> BasicEquipmentItems => BasicEngineeringItems == null || BasicEngineeringItems.Count == 0 ? new() : BasicEngineeringItems.OfType<BasicEquipmentItem>().ToList();
@@ -154,6 +98,167 @@ namespace Server.Domain.CommonEntities
         //public List<BasicEngineeringItem> ProcessDiagramComponents => [.. BasicEquipmentItems, .. BasicInstrumentItems, .. BasicValveItems, .. BasicPipeItem];
 
     }
+    internal class ProjectConfig : IEntityTypeConfiguration<Project>
+    {
+        public void Configure(EntityTypeBuilder<Project> builder)
+        {
+            builder.HasKey(x => x.Id);
+            builder.HasQueryFilter(x => x.IsDeleted == false);
 
+            //   builder.HasMany(x => x.AcceptanceCriterias)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            // .IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.HasMany(x => x.OtherTasks)
+            .WithOne(t => t.Project)
+            .HasForeignKey(e => e.ProjectId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
+
+
+            //builder.HasMany(x => x.Assumptions)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            //   .IsRequired()
+            //   .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            builder.HasMany(x => x.MonitoringLogs)
+            .WithOne(t => t.Project)
+            .HasForeignKey(e => e.ProjectId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
+
+            //builder.HasMany(x => x.BackGrounds)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            // .IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+
+            // builder.HasMany(x => x.Bennefits)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            // .IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(x => x.RiskMatrixs)
+           .WithOne(t => t.Project)
+           .HasForeignKey(e => e.ProjectId)
+      .IsRequired()
+      .OnDelete(DeleteBehavior.Cascade);
+            //    builder.HasMany(x => x.Objectives)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            //.IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+
+            //     builder.HasMany(x => x.Constrainsts)
+            //     .WithOne(t => t.Project)
+            //     .HasForeignKey(e => e.ProjectId)
+            //.IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.DefinitionItems)
+          .WithOne(t => t.Project)
+          .HasForeignKey(e => e.ProjectId)
+          .IsRequired()
+          .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.ExpertJudgements)
+       .WithOne(t => t.Project)
+       .HasForeignKey(e => e.ProjectId)
+       .IsRequired()
+       .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.KnownRisks)
+           .WithOne(t => t.Project)
+           .HasForeignKey(e => e.ProjectId)
+            .IsRequired()
+           .OnDelete(DeleteBehavior.Cascade);
+
+
+            builder.HasMany(x => x.LearnedLessons)
+        .WithOne(t => t.Project)
+        .HasForeignKey(e => e.ProjectId)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            builder.HasMany(x => x.Acquisitions)
+       .WithOne(t => t.Project)
+       .HasForeignKey(e => e.ProjectId)
+          .IsRequired()
+          .OnDelete(DeleteBehavior.Cascade);
+
+
+
+
+            builder.HasMany(x => x.Requirements)
+     .WithOne(t => t.Project)
+     .HasForeignKey(e => e.ProjectId)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
+
+            //   builder.HasMany(x => x.Scopes)
+            //.WithOne(t => t.Project)
+            //.HasForeignKey(e => e.ProjectId)
+            //.IsRequired()
+            //.OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Qualitys)
+       .WithOne(t => t.Project)
+       .HasForeignKey(e => e.ProjectId)
+       .IsRequired()
+       .OnDelete(DeleteBehavior.Cascade);
+
+
+
+
+            builder.HasMany(x => x.Resources)
+         .WithOne(t => t.Project)
+         .HasForeignKey(e => e.ProjectId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.Communications)
+      .WithOne(t => t.Project)
+      .HasForeignKey(e => e.ProjectId)
+         .IsRequired()
+         .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.BudgetItems)
+            .WithOne(t => t.Project)
+            .HasForeignKey(e => e.ProjectId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            builder.HasMany(e => e.StakeHolders)
+                  .WithMany(e => e.Projects);
+
+
+
+            builder.HasMany(x => x.PurchaseOrders)
+          .WithOne(t => t.Project)
+          .HasForeignKey(e => e.ProjectId)
+           .IsRequired()
+          .OnDelete(DeleteBehavior.Cascade);
+
+            // ✅ AGREGAR ESTO: Relación con la nueva tabla GanttTask
+            // Asegúrate de tener public List<GanttTask> GanttTasks { get; set; } en tu clase Project
+            builder.HasMany(x => x.GanttTasks)
+               .WithOne(t => t.Project)
+               .HasForeignKey(e => e.ProjectId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
+
+        }
+
+    }
 
 }

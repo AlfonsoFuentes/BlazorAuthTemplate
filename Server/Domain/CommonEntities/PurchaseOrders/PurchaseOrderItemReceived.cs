@@ -37,4 +37,15 @@ namespace Server.Domain.CommonEntities.PurchaseOrders
            PurchaseOrderCurrency.Id == CurrencyEnum.EUR.Id ? USDEUR == 0 ? 0 : ValueReceivedCurrency / USDEUR :
              0;
     }
+    internal class PurchaseOrderItemReceivedConfig : IEntityTypeConfiguration<PurchaseOrderItemReceived>
+    {
+        public void Configure(EntityTypeBuilder<PurchaseOrderItemReceived> builder)
+        {
+            builder.HasKey(ci => ci.Id);
+            builder.HasQueryFilter(x => x.IsDeleted == false);
+
+
+        }
+
+    }
 }

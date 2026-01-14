@@ -1,0 +1,127 @@
+﻿
+
+
+@* Agrega los usings de las otras categorias aqui *@
+@using System.Globalization
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">
+            Investments for Risk: <b>@RiskName</b>
+        </MudText>
+
+       @*  <MudTable Items="@_items" Dense="true" Hover="true" Striped="true" Elevation="0"
+                  Loading="@_loading" LoadingProgressColor="Color.Primary">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1"><b>Linked Costs</b></MudText>
+                <MudSpacer />
+
+                <MudMenu Label="Add Investment" 
+                         Variant="Variant.Filled" 
+                         Color="Color.Primary" 
+                         StartIcon="@Icons.Material.Filled.Add"
+                         EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                         Disabled="@DisableAddEdit">
+                    <MudMenuItem OnClick="@(() => AddInvestment("Alteration"))">Alteration</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Foundation"))">Foundation</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Structural"))">Structural</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Equipment"))">Equipment</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Valve"))">Valve</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Electrical"))">Electrical</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Pipe"))">Pipe</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Instrument"))">Instrument</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("EHS"))">EHS</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Testing"))">Testing</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => AddInvestment("Painting"))">Painting</MudMenuItem>
+                   
+                    <MudMenuItem OnClick="@(() => AddInvestment("EngineeringDesign"))">Engineering Design</MudMenuItem>
+                 
+                    </MudMenu>
+
+            </ToolBarContent>
+            
+            <HeaderContent>
+                <MudTh>Type</MudTh>
+                <MudTh>#</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh Style="text-align:right">Cost (USD)</MudTh>
+                <MudTh Style="text-align:center">Actions</MudTh>
+            </HeaderContent>
+            
+            <RowTemplate>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text">@context.CategoryName</MudChip>
+                </MudTd>
+                <MudTd>@context.Nomenclatore</MudTd>
+                <MudTd>@context.Name</MudTd>
+                <MudTd Style="text-align:right">
+                    @context.BudgetUSD.ToString("C0", new CultureInfo("en-US"))
+                </MudTd>
+                <MudTd Style="text-align:center">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                   Size="Size.Small"
+                                   Color="Color.Info"
+                                   OnClick="@(() => EditItem(context))"
+                                   Disabled="@DisableAddEdit" />
+
+                    <MudIconButton Icon="@Icons.Material.Outlined.Remove"
+                                   Size="Size.Small"
+                                   Color="Color.Info"
+                                   OnClick="@(() => DeleteInvestment(context))"
+                                   Disabled="@DisableAddEdit" />
+                            
+                    </MudTd>
+            </RowTemplate>
+            
+            <FooterContent>
+                <MudTd colspan="3"><b>Total Risk Mitigation</b></MudTd>
+                <MudTd Style="text-align:right">
+                    <b>@_items.Sum(x => x.BudgetUSD).ToString("C0", new CultureInfo("en-US"))</b>
+                </MudTd>
+                <MudTd></MudTd>
+            </FooterContent>
+        </MudTable> *@
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Default">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public Guid RiskId { get; set; }
+    [Parameter] public string RiskName { get; set; } = string.Empty;
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public bool DisableAddEdit { get; set; }
+
+    // private List<BudgetItemDto> _items = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItems();
+    }
+
+    private async Task LoadItems()
+    {
+        _loading = true;
+        StateHasChanged(); // Forzar spinner
+
+        // // Endpoint que trae TODOS los tipos mezclados
+        // var request = new GetBudgetItemsByKnownRiskId { KnownRiskId = RiskId };
+        // var result = await HttpService.PostAsync<GetBudgetItemsByKnownRiskId, GeneralDto<List<BudgetItemDto>>>(request);
+
+        // if (result.Succeeded)
+        // {
+        //     _items = result.Data ?? new();
+        // }
+        // _loading = false;
+    }
+
+   
+
+    
+
+    private void Close() => MudDialog.Close();
+}

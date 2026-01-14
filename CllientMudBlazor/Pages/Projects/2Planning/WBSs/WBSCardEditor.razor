@@ -1,0 +1,29 @@
+﻿@* WBSCardEditor.razor *@
+<EditForm Model="Model" OnValidSubmit="OnSave">
+    <FluentValidationValidator @ref="_validator" />
+    <MudStack Spacing="2">
+        <TextField @bind-Value="Model.Name" Label="Name *" For="@(() => Model.Name)" Lines="2"/>
+
+        <MudGrid Spacing="1">
+            <MudItem xs="4">
+                <DatePicker Label="Start" @bind-Value="Model.StartDate" Change="OnStartDateChanged" />
+            </MudItem>
+            <MudItem xs="4">
+                <DatePicker Label="End" @bind-Value="Model.EndDate" Change="OnEndDateChanged" />
+            </MudItem>
+            <MudItem xs="4">
+                <TextField @bind-Value="Model.Duration" Label="Dur" Change="OnDurationChanged" />
+            </MudItem>
+        </MudGrid>
+
+        <WBSDependencyTable Dependencies="Model.Dependencies" AllTasks="AllTasks"
+                            CurrentTaskId="Model.Id" OnChanged="OnDependencyChanged" />
+
+        <div class="d-flex justify-end gap-1 mt-2">
+            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!IsValid ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
+
+           
+        </div>
+    </MudStack>
+</EditForm>

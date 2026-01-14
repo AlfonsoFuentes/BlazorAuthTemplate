@@ -37,23 +37,42 @@ namespace Server.Services
         }
         internal static IApplicationBuilder MapEndPoint(this WebApplication app)
         {
-            try
+            // Usamos un Scope para asegurar la resolución de servicios
+            using (var scope = app.Services.CreateScope())
             {
-                var TransientServices = app.Services;
-                IEnumerable<IEndPoint> endpoints = app.Services.GetRequiredService<IEnumerable<IEndPoint>>();
+                var endpoints = scope.ServiceProvider.GetServices<IEndPoint>();
 
-
-
-                foreach (IEndPoint row in endpoints)
+                foreach (var endpoint in endpoints)
                 {
-                    row.MapEndPoint(app);
+                    #if DEBUG
+                    // 🛠️ MODO DESARROLLO (Debug)
+                    // Aquí SI tenemos Try-Catch para que puedas inspeccionar el error
+                    try
+                    {
+                        endpoint.MapEndPoint(app);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Este comando hace que Visual Studio se detenga aquí AUTOMÁTICAMENTE
+                        // como si hubieras puesto un Breakpoint rojo (Punto de interrupción).
+                        // Es genial porque te lleva directo a la línea del error.
+                        System.Diagnostics.Debugger.Break();
+
+                        // Puedes inspeccionar 'msg' pasando el mouse por encima
+                        string msg = ex.Message;
+                        Console.WriteLine($"Error mapping {endpoint.GetType().Name}: {msg}");
+
+                        // Opcional: Si quieres que siga intentando con los otros endpoints
+                        // no pongas 'throw'. Si quieres que pare, pon 'throw'.
+                    }
+                    #else
+                        // 🚀 MODO PRODUCCIÓN (Release)
+                        // Aquí NO hay Try-Catch. Si falla, la aplicación se detiene inmediatamente.
+                        // Esto es vital para que el servidor sepa que el despliegue falló.
+                        endpoint.MapEndPoint(app);
+                    #endif
                 }
             }
-            catch (Exception ex)
-            {
-                string msg = ex.Message;
-            }
-
 
             return app;
         }

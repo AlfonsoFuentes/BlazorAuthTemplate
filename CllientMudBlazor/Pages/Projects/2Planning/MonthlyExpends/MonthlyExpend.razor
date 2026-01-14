@@ -1,0 +1,151 @@
+﻿<style>
+    /* 1. Contenedor con scroll y bordes */
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+    }
+
+    /* 2. Estructura base de la tabla */
+    .m-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        /* 3. Estilo de celdas consolidado (Alta Densidad) */
+        .m-table th, .m-table td {
+            padding: 2px 8px; /* Padding reducido para menor altura */
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            white-space: nowrap;
+            font-size: 0.82rem;
+            height: 28px; /* Altura de fila compacta */
+        }
+
+    /* 4. Columnas Sticky (Fijas) */
+    .sticky-col {
+        position: sticky;
+        z-index: 10;
+        background-color: white;
+    }
+
+    .sticky-header {
+        z-index: 20 !important;
+        background-color: #f5f5f5 !important;
+        font-weight: bold;
+    }
+
+    /* Offsets calculados para las 4 columnas fijas */
+    .col-nomen {
+        left: 0;
+        min-width: 100px;
+    }
+
+    .col-name {
+        left: 100px;
+        min-width: 250px;
+    }
+
+    .col-budget {
+        left: 350px;
+        min-width: 120px;
+    }
+
+    .col-unassigned {
+        left: 470px;
+        min-width: 120px;
+        border-right: 3px solid #616161 !important; /* Separador visual fuerte */
+    }
+
+    /* 5. Estilos de Filas Especiales */
+    .row-sum {
+        background-color: #f1f3f4 !important; /* Gris profesional */
+        font-weight: bold;
+    }
+
+    .row-virt {
+        background-color: #fffde7 !important; /* Amarillo tenue */
+        font-style: italic;
+    }
+
+    /* 6. Formato de Moneda */
+    .text-money {
+        text-align: right;
+        font-family: 'Roboto Mono', monospace;
+    }
+</style>
+
+<MudPaper Elevation="3" Class="pa-4">
+    <MudText Typo="Typo.h5" Class="mb-4">Monthly Expenditure Plan</MudText>
+
+    @if (Loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <div class="table-container">
+            <table class="m-table">
+                <thead>
+                    <tr>
+                        <th class="sticky-col sticky-header col-nomen">Nomenclatore</th>
+                        <th class="sticky-col sticky-header col-name">Budget Item</th>
+                        <th class="sticky-col sticky-header col-budget text-center">Budget USD</th>
+                        <th class="sticky-col sticky-header col-unassigned text-center">Unassigned</th>
+                        @foreach (var month in Data.Columns)
+                        {
+                            <th class="text-center">@month</th>
+                        }
+                        <th class="text-center" style="background-color: #f5f5f5;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Data.Rows)
+                    {
+                        <tr class="@(row.IsSummary ? "row-sum" : row.IsVirtual ? "row-virt" : "")">
+                            @* 1. Nomenclatore *@
+                            <td class="sticky-col col-nomen">@row.Nomenclatore</td>
+
+                            @* 2. Nombre del Item *@
+                            <td class="sticky-col col-name">@row.BudgetName</td>
+
+                            @* 3. Presupuesto Base *@
+                            <td class="sticky-col col-budget text-money">
+                                @row.OriginalBudget.ToCurrencyCulture()
+                            </td>
+
+                            @* 4. Saldo Pendiente (Lógica de Alerta) *@
+                            <td class="sticky-col col-unassigned text-money"
+                                style="color:@(row.Unassigned > 0 ? "red" : "green"); font-weight:bold;">
+                                <MudTooltip Text="@(row.Unassigned > 0 ? "Warning: Budget not fully assigned" : "Budget utilized")">
+                                    @row.Unassigned.ToCurrencyCulture()
+                                </MudTooltip>
+                            </td>
+
+                            @* Meses Dinámicos *@
+                            @foreach (var month in Data.Columns)
+                            {
+                                <td class="text-money">
+                                    @(row.MonthlyValues.ContainsKey(month) ? row.MonthlyValues[month].ToCurrencyCulture() : "-")
+                                </td>
+                            }
+
+                            @* Acciones *@
+                            <td class="text-center">
+                                @if (!row.IsSummary && !row.IsVirtual)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Search"
+                                                   Size="Size.Small"
+                                                   Class="pa-0"
+                                                   Style="width: 22px; height: 22px;" />
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</MudPaper>

@@ -1,0 +1,99 @@
+﻿@using CllientMudBlazor.Pages.Projects._2Planning.MonthlyExpends
+
+
+<MudStack Style="width:100%">
+    <MudToolBar Class="d-flex justify-start gap-4" Dense="true">
+        <MudToolBar Class="d-flex justify-start gap-4" Dense="true">
+            <IconButton ToolTip="Get Project Planning PDF" Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Primary" Size="Size.Medium"></IconButton>
+
+            <IconButton ToolTip="Execute Project (Create Baselines)" Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary"
+                        Size="Size.Medium" OnClick="ExecuteProject" Disabled="DisableButtonsAddEdit"></IconButton>
+
+            <SimpleText Text="Project Planning (Logistics & Schedule)" IsBold="true"></SimpleText>
+        </MudToolBar>
+
+    </MudToolBar>
+    @if (CurrentTable != null)
+    {
+
+
+        <MudPaper Elevation="1" Class="pa-4">
+
+
+            @switch (CurrentTable)
+            {
+                case DashBoardsPlanningTable.WBS:
+                    <WBS ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                case DashBoardsPlanningTable.Gantt:
+                    <GanttView ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit"></GanttView>
+                    break;
+
+                // =================================================
+                // 2. LOGÍSTICA DE RECURSOS
+                // =================================================
+                case DashBoardsPlanningTable.Resources:
+                    <Resources ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                case DashBoardsPlanningTable.Adquisition:
+                    <Adquisition ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                // =================================================
+                // 3. GESTIÓN
+                // =================================================
+                case DashBoardsPlanningTable.Communication:
+                    <Communication ProjectId="@ProjectId" HideTable="HideTable" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                // =================================================
+                // 4. FLUJO DE CAJA
+                // =================================================
+                case DashBoardsPlanningTable.Expend:
+                    <MonthlyExpend ProjectId="@ProjectId"></MonthlyExpend>
+                    break;
+
+
+
+
+
+
+
+
+            }
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="1" Class="pa-4 text-center">
+            <ProjectTableSelector TItem=DashBoardsPlanningTable OnTableSelected="ShowTable" />
+        </MudPaper>
+    }
+</MudStack>
+
+    @code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public EventCallback ParentGetAll { get; set; }
+
+    [Parameter]
+    public bool DisableButtonsAddEdit { get; set; } = false;
+
+    private DashBoardsPlanningTable? CurrentTable { get; set; }
+    private void ShowTable(DashBoardsPlanningTable table)
+    {
+        CurrentTable = table;
+    }
+    private void HideTable()
+    {
+        CurrentTable = null!;
+    }
+    async Task ExecuteProject()
+    {
+             
+
+    }
+}

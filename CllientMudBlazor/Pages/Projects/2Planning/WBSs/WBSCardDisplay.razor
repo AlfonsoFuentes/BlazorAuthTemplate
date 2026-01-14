@@ -1,0 +1,50 @@
+﻿@* WBSCardDisplay.razor *@
+<MudStack Spacing="1">
+    <MudText Typo="Typo.subtitle2" Class="wbs-task-name">@Task.Name</MudText>
+
+    <div class="d-flex align-center flex-wrap" style="gap: 8px;">
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+            📅 @Task.StartDate?.ToString("MM/dd/yyyy") – @Task.EndDate?.ToString("MM/dd/yyyy")
+        </MudText>
+
+        <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info" Class="ma-0">
+            @Task.Duration
+        </MudChip>
+
+        @if (!string.IsNullOrEmpty(Task.SummaryDependencies))
+        {
+            <MudDivider Vertical="true" FlexItem="true" Style="height:14px;" Class="mx-1" />
+            <MudTooltip Text="@(HasConflict ? "Hierarchical conflict detected: Circular reference ignored." : "Dependencies")">
+                <MudText Typo="Typo.overline"
+                         Color="@(HasConflict ? Color.Error : Color.Dark)"
+                         Class="@(HasConflict ? "text-error-strikethrough" : "")">
+                    🔗 @Task.SummaryDependencies
+                </MudText>
+            </MudTooltip>
+        }
+        @if (Task.Communications != null && Task.Communications.Any())
+        {
+            <MudDivider Vertical="true" FlexItem="true" Style="height:14px;" Class="mx-1" />
+            <MudTooltip Text="@($"{Task.Communications.Count} Communication(s)")">
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="fas fa-bullhorn" Size="Size.Small" Color="Color.Primary" Style="font-size: 1rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Primary" Style="font-weight: 700;">
+                        @Task.Communications.Count
+                    </MudText>
+                </MudStack>
+            </MudTooltip>
+        }
+        @if (Task.Appropiation > 0)
+        {
+            <MudDivider Vertical="true" FlexItem="true" Style="height:14px;" Class="mx-1" />
+            <MudTooltip Text="Budget Assigned">
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Small" Color="Color.Success" Style="font-size: 1rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Success" Style="font-weight: 700;">
+                        @Task.Appropiation.ToCurrencyCulture()
+                    </MudText>
+                </MudStack>
+            </MudTooltip>
+        }
+    </div>
+</MudStack>

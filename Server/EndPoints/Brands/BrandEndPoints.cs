@@ -1,5 +1,5 @@
 ﻿using Server.DataContext;
-using Server.Domain.CommonEntities.BudgetItems.ProcessFlowDiagrams;
+using Server.Domain.CommonEntities;
 using Server.Interfaces.EndPoints;
 using Server.Services;
 using Shared.Dtos.Brands;
@@ -112,7 +112,7 @@ namespace Server.EndPoints.Brands
 
                 if (row is null)
                 {
-                    return Results.Ok(new GeneralDto
+                    return Results.Ok(new GeneralDto<BrandDto>
                     {
                         Succeeded = false,
                         Message = $"{typeof(Brand).Name} was not found"

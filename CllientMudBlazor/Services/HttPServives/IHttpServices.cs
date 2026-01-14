@@ -7,7 +7,7 @@ namespace CllientMudBlazor.Services.HttPServives
     public interface IHttpServices
     {
         Task<TResponse> PostAsync<TRequest, TResponse>(TRequest request)
-            where TRequest : class
+            where TRequest : class 
             where TResponse : class;
         Task<bool> PostForValidationAsync<TRequest>(TRequest request) where TRequest : class;
     }

@@ -53,6 +53,7 @@
     // Método auxiliar para manejar la visualización del texto
     private string GetDisplayText(TValue item)
     {
+       
         return Property?.Invoke(item) ?? item?.ToString() ?? string.Empty;
     }
 

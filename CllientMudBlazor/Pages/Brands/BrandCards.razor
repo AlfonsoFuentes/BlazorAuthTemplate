@@ -1,0 +1,160 @@
+﻿@using Shared.Dtos.Brands
+@using CllientMudBlazor.Templates
+
+<MudStack Spacing="3">
+
+    <MudPaper Elevation="0" Class="pa-2 d-flex align-center gap-2" Outlined="true" Style="background-color: #FAFAFA;">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Default" Class="ml-2" />
+        <MudTextField T="string" ValueChanged="OnNameFilter" Value="@_nameFilter"
+                      Placeholder="Search Brands..."
+                      Variant="Variant.Text"
+                      Adornment="Adornment.None"
+                      Class="flex-grow-1"
+                      Immediate="true"
+                      Margin="Margin.Dense" />
+
+        @if (!string.IsNullOrEmpty(_nameFilter))
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => OnNameFilter(string.Empty))" />
+        }
+    </MudPaper>
+
+    <TemplateCard2 TValue="BrandDto"
+                   Title="Brands Master Data"
+                   Items="FilteredItems"
+                   Model="Model"
+                   IsLoading="_loading"
+                   HasOrder="false"
+                   Edit="StartEdit"
+                   Delete="DeleteAsync"
+                   Submit="Submit"
+                   Cancel="Cancel"
+                   DisableAddEdit="false">
+
+        <CustomHeaderButtons>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="StartCreate"
+                       Class="rounded-pill">
+                New Brand
+            </MudButton>
+        </CustomHeaderButtons>
+
+        <FormContent Context="ctx">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <TextField @bind-Value="ctx.Model.Name"
+                               Label="Brand Name"
+                               ValidateAsync="@ctx.ValidateAsync"
+                               For="@(() => ctx.Model.Name)"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.BrandingWatermark" />
+                </MudItem>
+            </MudGrid>
+        </FormContent>
+
+        <MainContent Context="item">
+            <div class="d-flex align-center w-100">
+                <MudAvatar Color="Color.Transparent" Size="Size.Medium" Class="mr-3">
+                    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Primary" />
+                </MudAvatar>
+
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">@item.Name</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Brand ID: @item.Id.ToString().Substring(0, 8)...</MudText>
+                </div>
+            </div>
+        </MainContent>
+
+    </TemplateCard2>
+</MudStack>
+
+@code {
+    // --- ESTADO ---
+    private List<BrandDto> _items = new();
+    private bool _loading = true;
+    private BrandDto Model = null!;
+    private string _nameFilter = string.Empty;
+
+    // --- FILTRADO ---
+    private List<BrandDto> FilteredItems => string.IsNullOrEmpty(_nameFilter)
+        ? _items
+        : _items.Where(x => x.Name?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false).ToList();
+
+    private void OnNameFilter(string value) => _nameFilter = value;
+
+    // --- CARGA DE DATOS ---
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var result = await HttpService.PostAsync<GetAllBrands, GeneralDto<List<BrandDto>>>(new GetAllBrands());
+        if (result.Succeeded)
+        {
+            _items = result.Data ?? new();
+        }
+        _loading = false;
+    }
+
+    // --- CRUD ---
+    private void StartCreate()
+    {
+        Model = new CreateBrand
+        {
+            Id = Guid.Empty
+        };
+    }
+
+    // 🔥 FETCH ON EDIT: Traemos el dato fresco del servidor
+    private async Task StartEdit(BrandDto item)
+    {
+        var result = await HttpService.PostAsync<GetBrandById, GeneralDto<EditBrand>>(new GetBrandById() { Id = item.Id });
+
+        if (result.Succeeded && result.Data != null)
+        {
+            Model = result.Data;
+        }
+        
+    }
+
+    private void Cancel() => Model = null!;
+
+    private async Task Submit()
+    {
+        GeneralDto result = await HttpService.PostAsync<BrandDto, GeneralDto>(Model);
+
+        if (result.Succeeded)
+        {
+            
+            Model = null!;
+            await LoadDataAsync();
+        }
+        
+    }
+
+    private async Task DeleteAsync(BrandDto item)
+    {
+        var parameters = new DialogParameters<DialogTemplate>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete '{item.Name}'?" },
+            { x => x.ButtonText, "Delete" },
+            { x => x.Color, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Deletion", parameters, new DialogOptions { MaxWidth = MaxWidth.ExtraSmall });
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            var deleteRes = await HttpService.PostAsync<DeleteBrand, GeneralDto>(new DeleteBrand { Id = item.Id });
+            if (deleteRes.Succeeded)
+            {
+               
+                await LoadDataAsync();
+            }
+            
+        }
+    }
+}

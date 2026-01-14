@@ -1,0 +1,201 @@
+﻿@using Shared.Dtos.Projects
+
+
+<MudStack Spacing="3">
+
+    <MudPaper Elevation="0" Class="pa-2 d-flex align-center gap-2" Outlined="true" Style="background-color: #FAFAFA;">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Default" Class="ml-2" />
+        <MudTextField T="string" ValueChanged="OnNameFilter" Value="@_nameFilter"
+                      Placeholder="Search Stakeholders..."
+                      Variant="Variant.Text"
+                      Adornment="Adornment.None"
+                      Class="flex-grow-1"
+                      Immediate="true"
+                      Margin="Margin.Dense" />
+
+        @if (!string.IsNullOrEmpty(_nameFilter))
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => OnNameFilter(string.Empty))" />
+        }
+    </MudPaper>
+
+    <TemplateCard2 TValue="StakeHolderDto"
+                   Title="Stakeholders Master Data"
+                   Items="FilteredItems"
+                   Model="Model"
+                   IsLoading="_loading"
+                   HasOrder="false"
+                   Edit="StartEdit"
+                   Delete="DeleteAsync"
+                   Submit="Submit"
+                   Cancel="Cancel"
+                   DisableAddEdit="false">
+
+        <CustomHeaderButtons>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="StartCreate"
+                       Class="rounded-pill">
+                New Stakeholder
+            </MudButton>
+        </CustomHeaderButtons>
+
+        <FormContent Context="ctx">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.Name"
+                               Label="Full Name"
+                               ValidateAsync="@ctx.ValidateAsync"
+                               For="@(() => ctx.Model.Name)"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.Person" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.Area"
+                               Label="Area / Department"
+                               ValidateAsync="@ctx.ValidateAsync"
+                               For="@(() => ctx.Model.Area)"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.Business" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.Email"
+                               Label="Email"
+                               InputType="InputType.Email"
+                               ValidateAsync="@ctx.ValidateAsync"
+                               For="@(() => ctx.Model.Email)"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.Email" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <TextField @bind-Value="ctx.Model.PhoneNumber"
+                               Label="Phone Number"
+                               InputType="InputType.Telephone"
+                               ValidateAsync="@ctx.ValidateAsync"
+                               For="@(() => ctx.Model.PhoneNumber)"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.Phone" />
+                </MudItem>
+            </MudGrid>
+        </FormContent>
+
+        <MainContent Context="item">
+            <div class="d-flex align-center w-100">
+                <MudAvatar Color="Color.Transparent" Size="Size.Medium" Class="mr-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+                </MudAvatar>
+
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">@item.Name</MudText>
+
+                    <div class="d-flex align-center gap-2">
+                        <MudText Typo="Typo.caption" Style="color: #546E7A; font-weight:600;">
+                            @item.Area
+                        </MudText>
+
+                        @if (!string.IsNullOrEmpty(item.Email))
+                        {
+                            <MudText Typo="Typo.caption" Style="color: #B0BEC5;">|</MudText>
+
+                            <MudText Typo="Typo.caption" Style="color: #78909C;">
+                                @item.Email
+                            </MudText>
+                        }
+                    </div>
+                </div>
+            </div>
+        </MainContent>
+
+    </TemplateCard2>
+</MudStack>
+
+@code {
+    // --- ESTADO ---
+    private List<StakeHolderDto> _items = new();
+    private bool _loading = true;
+    private StakeHolderDto Model = null!;
+    private string _nameFilter = string.Empty;
+
+    // --- FILTRADO ---
+    private List<StakeHolderDto> FilteredItems => string.IsNullOrEmpty(_nameFilter)
+        ? _items
+        : _items.Where(x =>
+            (x.Name?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.Area?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.Email?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false)
+          ).ToList();
+
+    private void OnNameFilter(string value) => _nameFilter = value;
+
+    // --- CARGA DE DATOS ---
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        // ProjectId Empty para traer la lista global
+        var result = await HttpService.PostAsync<GetAllStakeHolders, GeneralDto<List<StakeHolderDto>>>(new GetAllStakeHolders { ProjectId = Guid.Empty });
+        if (result.Succeeded)
+        {
+            _items = result.Data ?? new();
+        }
+        _loading = false;
+    }
+
+    // --- CRUD ---
+    private void StartCreate()
+    {
+        Model = new CreateStakeHolder
+        {
+            Id = Guid.Empty
+        };
+    }
+
+    // FETCH ON EDIT: Traemos dato fresco (Patrón Brands)
+    private async Task StartEdit(StakeHolderDto item)
+    {
+        var result = await HttpService.PostAsync<GetStakeHolderById, GeneralDto<EditStakeHolder>>(new GetStakeHolderById() { Id = item.Id });
+
+        if (result.Succeeded && result.Data != null)
+        {
+            Model = result.Data;
+        }
+    }
+
+    private void Cancel() => Model = null!;
+
+    private async Task Submit()
+    {
+        // Enviamos el Model polimórfico (Create o Edit)
+        GeneralDto result = await HttpService.PostAsync<StakeHolderDto, GeneralDto>(Model);
+
+        if (result.Succeeded)
+        {
+            Model = null!;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task DeleteAsync(StakeHolderDto item)
+    {
+        var parameters = new DialogParameters<DialogTemplate>
+        {
+            { x => x.ContentText, $"Are you sure you want to delete '{item.Name}'?" },
+            { x => x.ButtonText, "Delete" },
+            { x => x.Color, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Deletion", parameters, new DialogOptions { MaxWidth = MaxWidth.ExtraSmall });
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            var deleteRes = await HttpService.PostAsync<DeleteStakeHolder, GeneralDto>(new DeleteStakeHolder { Id = item.Id });
+            if (deleteRes.Succeeded)
+            {
+                await LoadDataAsync();
+            }
+        }
+    }
+}

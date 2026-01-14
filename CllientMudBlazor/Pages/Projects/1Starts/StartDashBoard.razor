@@ -1,0 +1,180 @@
+﻿
+
+
+<MudStack Style="width:100%">
+    <MudToolBar Class="d-flex justify-start gap-4" Dense="true">
+        <IconButton ToolTip="Get Project Charter" Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Primary" Size="Size.Medium" OnClick="GetProjectCharterPDF"></IconButton>
+
+        <IconButton ToolTip="Approve Project Start (Freeze Investment)" Icon="@Icons.Material.Filled.Approval" Color="Color.Primary"
+                    Size="Size.Medium" OnClick="OpenApproveProjectDialog" Disabled="DisableButtonsAddEdit"></IconButton>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+
+        @if (CurrentTable != null)
+        {
+            <IconButton Color="Color.Info"
+                        ToolTip="Go Back to Dashboard"
+                        Size="Size.Medium"
+                        Icon="@Icons.Material.Filled.ArrowBack"
+                        OnClick="HideTable" />
+           
+        }
+        else
+        {
+            <SimpleText Text="Project Start (Investment Definition)" IsBold="true"></SimpleText>
+        }
+    </MudToolBar>
+
+    @if (CurrentTable != null)
+    {
+        <MudPaper Elevation="1" Class="pa-4">
+            @switch (CurrentTable)
+            {
+                case DashBoardsStartTable.BackGrounds:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Background" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Objectives:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Objective" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Benefits:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Benefit" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+
+                // =================================================
+                // 2. EL "QUIÉN" Y EL "RESPALDO"
+                // =================================================
+                case DashBoardsStartTable.StakeHolders:
+                    <StakeHolderInsideProjectCards ProjectId="@ProjectId"  DisableAddEdit="DisableButtonsAddEdit"></StakeHolderInsideProjectCards>
+                    break;
+                case DashBoardsStartTable.ExpertJudgment:
+                    <ExpertJudgementCards ProjectId="@ProjectId" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                // =================================================
+                // 3. EL "QUÉ" FÍSICO (Cost Drivers Directos)
+                // =================================================
+                case DashBoardsStartTable.Deliverables:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Deliverable" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Scopes:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Scope" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Requirements:
+                    <RequirementCards ProjectId="@ProjectId"  DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+
+                // =================================================
+                // 4. COSTOS OCULTOS Y RIESGOS
+                // =================================================
+                case DashBoardsStartTable.Quality:
+                    <QualityCards ProjectId="@ProjectId"  DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+                case DashBoardsStartTable.KnownRisks:
+                    <KnowRiskCards ProjectId="@ProjectId"  DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+                case DashBoardsStartTable.RiskMatrix:
+                    <RiskMatrixCards ProjectId="@ProjectId"  DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+                // =================================================
+                // 5. REGLAS DE JUEGO
+                // =================================================
+                case DashBoardsStartTable.AcceptanceCriterias:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.AcceptanceCriteria" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Constrainsts:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Constraint" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+                case DashBoardsStartTable.Assumptions:
+                    <ProjectDefinitionItems ProjectId="@ProjectId" Type="ProjectDefinitionType.Assumption" DisableAddEdit="@DisableButtonsAddEdit"></ProjectDefinitionItems>
+                    break;
+
+                // =================================================
+                // 6. LA CIFRA FINAL
+                // =================================================
+                case DashBoardsStartTable.Investment:
+                    <BudgetList ProjectId="@ProjectId" DisableAddEdit="DisableButtonsAddEdit" />
+                    break;
+            }
+        </MudPaper>
+    }
+    else
+    {
+       
+
+        <MudPaper Elevation="1" Class="pa-4 text-center mt-4">
+            <ProjectTableSelector TItem=DashBoardsStartTable OnTableSelected="ShowTable" />
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public bool DisableButtonsAddEdit { get; set; } = false;
+
+    private DashBoardsStartTable? CurrentTable { get; set; }
+
+    private void ShowTable(DashBoardsStartTable table)
+    {
+        CurrentTable = table;
+    }
+
+    private void HideTable()
+    {
+        // Al volver a null, Blazor re-renderiza el bloque 'else'
+        // Esto causará que <ProjectStartMetrics> se inicialice de nuevo
+        // y traiga los datos frescos del servidor automáticamente.
+        CurrentTable = null!;
+    }
+
+    async Task OpenApproveProjectDialog()
+    {
+        ApproveProjectStart model = new()
+        {
+            Id = ProjectId,
+        };
+        var parameters = new DialogParameters<ApproveProjectDialog>
+        {
+            { x => x.Model, model},
+        };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<ApproveProjectDialog>("Approve Project", parameters, options);
+        var result = await dialog.Result;
+        if (result != null)
+        {
+            NotificationService.NotifyProjectsChanged();
+            StateHasChanged();
+        }
+    }
+
+    async Task GetProjectCharterPDF()
+    {
+        ExportProjectChartedPDF model = new ExportProjectChartedPDF()
+        {
+            ProjectId = ProjectId
+        };
+        var result = await HttpService.PostAsync<ExportProjectChartedPDF, GeneralDto<FileResult>>(model);
+
+        if (result.Succeeded)
+        {
+            var downloadresult = await blazorDownloadFileService.DownloadFile(result.Data.ExportFileName,
+              result.Data.Data, contentType: result.Data.ContentType);
+
+            if (downloadresult.Succeeded)
+            {
+                _snackbarService.ShowSuccess($"Project Charter exported successfully");
+            }
+            else
+            {
+                _snackbarService.ShowError($"Failed to download Project Charter");
+            }
+        }
+        else
+        {
+            _snackbarService.ShowError(result.Message);
+        }
+    }
+}

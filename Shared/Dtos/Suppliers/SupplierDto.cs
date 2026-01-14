@@ -1,9 +1,10 @@
 ﻿using Shared.Dtos.General;
 using Shared.Enums.CurrencyEnums;
+using Shared.Interfaces;
 
 namespace Shared.Dtos.Suppliers
 {
-    public class SupplierDto : GeneralDto
+    public class SupplierDto : IModelDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -17,6 +18,7 @@ namespace Shared.Dtos.Suppliers
         public string? Address { get; set; } = string.Empty;
         public string? ContactEmail { get; set; } = string.Empty;
         public CurrencyEnum SupplierCurrency { get; set; } = CurrencyEnum.COP;
+        public int Order { get; set; }
     }
     public class CreateSupplier     : SupplierDto
     {

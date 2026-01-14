@@ -1,7 +1,7 @@
 ﻿using MudBlazor;
 using MudBlazor.Utilities;
 
-namespace CllientMudBlazor.Themes;
+namespace CllientMudBlazor.Services.Themes;
 
 public static class AppTheme
 {

@@ -79,8 +79,29 @@ namespace Server.Domain.CommonEntities.PurchaseOrders
         [NotMapped]
         public double CommitmentUSD => PurchaseOrderItems == null || PurchaseOrderItems.Count == 0 ? 0 :
             PurchaseOrderItems.Sum(x => x.CommitmentItemUSD);
-        
-        
-       
+
+
+
+    }
+    internal class PurchaseOrderConfig : IEntityTypeConfiguration<PurchaseOrder>
+    {
+        public void Configure(EntityTypeBuilder<PurchaseOrder> builder)
+        {
+            builder.HasKey(ci => ci.Id);
+            builder.HasQueryFilter(x => x.IsDeleted == false);
+            builder
+                .HasOne(c => c.Supplier)
+                .WithMany(t => t.PurchaseOrders)
+                .HasForeignKey(x => x.SupplierId)
+                .OnDelete(DeleteBehavior.NoAction);
+            builder
+                .HasMany(c => c.PurchaseOrderItems)
+                .WithOne(t => t.PurchaseOrder)
+                .HasForeignKey(e => e.PurchaseOrderId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+
+        }
+
     }
 }

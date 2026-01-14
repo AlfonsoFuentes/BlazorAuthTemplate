@@ -28,7 +28,24 @@ namespace Shared.Dtos.Projects
         public ProjectNeedTypeEnum ProjectNeedType { get; set; } = ProjectNeedTypeEnum.None;
         public string ProjectName { get; set; } = string.Empty;
     }
-    public class ApproveProject
+    public class ApproveProjectStart
+    {
+        public Guid Id { get; set; }
+        
+        public string ProjectName { get; set; } = string.Empty;
+      
+        public int BudgetItems { get; set; }
+        public int Stakeholders { get; set; }
+        public int Requirements { get; set; }
+        public int Objectives { get; set; }
+        public int Scopes { get; set; }
+        public int AcceptenceCriterias { get; set; }
+        public int Backgrounds { get; set; }
+        public DateTime? InitialProjectDate { get; set; } = DateTime.Today;
+
+    }
+    public record GetInitialProjectDate(Guid ProjectId);
+    public class ApproveProjectPlann
     {
         public Guid Id { get; set; }
         public double PercentageEngineering { get; set; }
@@ -41,7 +58,7 @@ namespace Shared.Dtos.Projects
         public ProjectNeedTypeEnum ProjectNeedType { get; set; } = ProjectNeedTypeEnum.None;
         public string ProjectName { get; set; } = string.Empty;
         public string ProjectNumber { get; set; } = string.Empty;
-        public DateTime? InitialProjectDate { get; set; } = DateTime.Today;
+        
         public int BudgetItems { get; set; }
         public int Stakeholders { get; set; }
         public int Requirements { get; set; }
@@ -57,7 +74,11 @@ namespace Shared.Dtos.Projects
         public Guid ProjectId { get; set; }
 
     }
+    public class ExportProjectPlannPDF
+    {
+        public Guid ProjectId { get; set; }
 
+    }
 
     public class ValidateProjectName
     {

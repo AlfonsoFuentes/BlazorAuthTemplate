@@ -9,21 +9,19 @@
         public DateTime? InitialDate { get; set; } 
         public DateTime? EndDate { get; set; }
         public string? ClosingText { get; set; } = string.Empty;
-        public static MonitoringLog Create(Guid ProjectId, int Order)
+       
+
+
+    }
+    internal class MonitoringLogConfig : IEntityTypeConfiguration<MonitoringLog>
+    {
+        public void Configure(EntityTypeBuilder<MonitoringLog> builder)
         {
-            return new()
-            {
-                Id = Guid.NewGuid(),
-                ProjectId = ProjectId,
-                Order = Order,
+            builder.HasKey(ci => ci.Id);
+            builder.HasQueryFilter(x => x.IsDeleted == false);
 
 
-            };
         }
-
-
-
-
 
     }
 }

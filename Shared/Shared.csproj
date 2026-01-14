@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Dtos\Commons\" />
-    <Folder Include="Dtos\Starts\StakeHolders\" />
+    <Folder Include="Dtos\Projects\1. Starts\StakeHolders\" />
   </ItemGroup>
 
 </Project>

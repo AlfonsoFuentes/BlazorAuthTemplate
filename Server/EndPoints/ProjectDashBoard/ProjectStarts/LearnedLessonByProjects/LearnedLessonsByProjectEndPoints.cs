@@ -1,11 +1,10 @@
 ﻿using Server.DataContext;
 using Server.Interfaces.EndPoints;
-using Server.Services;
 using Server.Services.Repositories;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
-using Shared.Dtos.Starts.Constrainsts;
 using Shared.Dtos.Starts.LearnedLessonsByProjects;
+using Shared.Enums.DashBoardTable;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjects
 {
 
@@ -45,19 +44,18 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjec
                     project.LastModifiedOn = DateTime.UtcNow;
 
                 var cacheKeyAll = $"{typeof(GetAllLearnedLessonsByProjects).Name}{dto.ProjectId}";
-                
-                var maxOrder = await getNextOrder.GetNextOrderAsync<LearnedLesson>(cacheKeyAll, dto.ProjectId);
-            
-                row.Order = maxOrder;
+
+                var maxOrder = await _context.LearnedLessons
+                   .Where(x => x.ProjectId == dto.ProjectId)
+                   .MaxAsync(x => (int?)x.Order) ?? 0;
+
+                row.Order = maxOrder + 1;
 
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.LearnedLessons);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -88,12 +86,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjec
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyId = $"{typeof(GetLearnedLessonsByProjectById).Name}-{dto.Id}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyAll = $"{typeof(GetAllLearnedLessonsByProjects).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.LearnedLessons);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -144,7 +138,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjec
             // ✅ Obtener todos
             app.MapPost("GetAllLearnedLessonsByProjects", async (GetAllLearnedLessonsByProjects dto, IAppDbContext _context) =>
             {
-                var cacheKey = $"{typeof(GetAllLearnedLessonsByProjects).Name}{dto.ProjectId}";
+                var cacheKey = $"{typeof(GetAllLearnedLessonsByProjects).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.LearnedLessons
@@ -188,11 +182,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjec
                         i++;
                     }
                     await _context.SaveChangesAsync();
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllLearnedLessonsByProjects).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.LearnedLessons);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -211,10 +202,10 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.LearnedLessonsByProjec
             // ✅ Validar nombre único
             app.MapPost("ValidateLearnedLessonsByProjectName", async (ValidateLearnedLessonsByProjectName dto, IAppDbContext _context) =>
             {
-                var cacheKeyAll = $"{typeof(GetAllLearnedLessonsByProjects).Name}{dto.ProjectId}";
+                var cacheKeyAll = $"{typeof(GetAllLearnedLessonsByProjects).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
-                    return await _context.LearnedLessons
+                    return await _context.LearnedLessons.Where(x => x.ProjectId == dto.ProjectId)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable().ToListAsync();

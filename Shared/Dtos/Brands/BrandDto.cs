@@ -1,13 +1,15 @@
 ﻿using Shared.Dtos.General;
 using Shared.Enums.CurrencyEnums;
+using Shared.Interfaces;
 
 namespace Shared.Dtos.Brands
 {
-    public class BrandDto : GeneralDto
+    public class BrandDto : IModelDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-       
+        public int Order { get; set; }
+
     }
     public class CreateBrand     : BrandDto
     {

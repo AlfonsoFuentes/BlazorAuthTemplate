@@ -1,0 +1,93 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+
+
+<TemplateDialog TValue="GanttDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <TextField @bind-Value="ctx.Model.Name" Label="Name *" For="@(() => ctx.Model.Name)" Lines="2" ValidateAsync="ctx.ValidateAsync" />
+        <TextField @bind-Value="ctx.Model.ResponsibleId" Label="Responsible ID" For="@(() => ctx.Model.ResponsibleId)" Lines="2" ValidateAsync="ctx.ValidateAsync" />
+        <Switch @bind-Value="ctx.Model.IsMilestone" Label="IsMilestone?" />
+
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <DatePicker Label="Start date" @bind-Value="ctx.Model.StartDate" For="@(() => ctx.Model.StartDate)" ValidateAsync="ctx.ValidateAsync"
+                            Change="OnStartDateChanged" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <DatePicker Label="End date" @bind-Value="ctx.Model.EndDate" For="@(() => ctx.Model.EndDate)" ValidateAsync="ctx.ValidateAsync"
+                            Change="OnEndDateChanged" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <TextField @bind-Value="ctx.Model.Duration" Label="Duration" For="@(() => ctx.Model.Duration)" ValidateAsync="ctx.ValidateAsync"
+                           Change="OnDurationChanged" />
+            </MudItem>
+        </MudGrid>
+        <MudText Typo="Typo.body2" Class="mt-4 mb-2">Dependencies</MudText>
+        <IconButton Color="Color.Primary"
+                    Icon="@Icons.Material.Filled.Add"
+                    OnClick="AddDependency"
+                    Size="Size.Small"
+                    Disabled="allTasks.Count == 0"
+                    ToolTip="Add Dependency" />
+
+
+
+        @if (ctx.Model.Dependencies.Any())
+        {
+            <MudTable Items="@ctx.Model.Dependencies" Dense="true" Hover="true" Class="mt-2" Bordered="true">
+                <HeaderContent>
+                    <MudTh>#</MudTh>
+                    <MudTh>Predecessor</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Lag</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="dep">
+                    <MudTd Style="width: 40px; text-align: center;">@dep.Order</MudTd>
+                    <MudTd Style="min-width: 200px;">
+                        <Select Items="allTasks.Where(t => t.Id != ctx.Model.Id).ToList()"
+                                TValue="GanttDto"
+                                @bind-Value="dep.Predecessor"
+                                Property="x => x.IdNumber.ToString()"
+                                Change="OnDependencyChanged" />
+                    </MudTd>
+                    <MudTd Style="min-width: 120px;">
+                        <SelectEnum @bind-Value="dep.Type"
+                                    Change="OnDependencyChanged" />
+                    </MudTd>
+                    <MudTd Style="min-width: 100px;">
+                        <TextField @bind-Value="dep.Lag"
+                                   Change="OnDependencyChanged"
+                                   Immediate="true" />
+                    </MudTd>
+                    <MudTd Style="min-width: 120px;">
+                        <MudStack Row="true">
+                            <IconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete"
+                                        OnClick="@(() => RemoveDependency(dep))" Size="Size.Small" />
+                            <IconButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.ArrowUpward"
+                                        Disabled="@(ctx.Model.Dependencies.IndexOf(dep) == 0)"
+                                        OnClick="@(() => MoveDependencyUp(dep))" />
+                            <IconButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.ArrowDownward"
+                                        Disabled="@(ctx.Model.Dependencies.IndexOf(dep) == ctx.Model.Dependencies.Count - 1)"
+                                        OnClick="@(() => MoveDependencyDown(dep))" />
+                        </MudStack>
+                        
+
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+
+
+
+    </Content>
+</TemplateDialog>
+
+
+@code {
+}

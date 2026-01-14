@@ -1,0 +1,142 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+
+
+
+<div class="wbs-dep-container mt-3">
+    @* --- HEADER --- *@
+    <div class="d-flex align-center justify-space-between mb-2">
+        <MudText Typo="Typo.overline" Style="font-weight: 800; letter-spacing: 1px; color: var(--mud-palette-text-secondary);">
+            PREDECESSORS (@Dependencies.Count)
+        </MudText>
+        <IconButton Icon="@Icons.Material.Filled.AddLink"
+                    Color="Color.Primary"
+                    Variant="Variant.Filled"
+                    ToolTip="Add Dependency"
+                    OnClick="Add" />
+    </div>
+
+    @* --- LIST --- *@
+    @if (!Dependencies.Any())
+    {
+        <div class="pa-4 d-flex flex-column align-center border-1 border-dashed rounded mud-border-lines-default">
+            <MudIcon Icon="@Icons.Material.Outlined.LinkOff" Color="Color.Transparent" Size="Size.Medium" />
+            <MudText Typo="Typo.caption" Class="mud-text-disabled italic">No predecessors defined.</MudText>
+        </div>
+    }
+    else
+    {
+        <div class="dep-list-scroll">
+            @foreach (var dep in Dependencies)
+            {
+                var index = Dependencies.IndexOf(dep);
+                <div class="d-flex align-center gap-1 mb-2 pa-1 rounded border-1 border-solid mud-border-lines-default mud-bg-gray-light">
+
+                    <div class="dep-order-badge">@dep.Order</div>
+
+                    @* Selector de Predecesor *@
+                    <div style="flex: 2; min-width: 30px;">
+                        <Select Items="AllTasks.Where(t => t.Id != CurrentTaskId).ToList()"
+                                TValue="GanttDto"
+                                @bind-Value="dep.Predecessor"
+                                Property="x => x.IdNumber.ToString()"
+                                Change="HandlePredecessorChanged" />
+                    </div>
+
+                    @* Tipo de Dependencia *@
+                    <div style="width: 150px;">
+
+                       
+                        <SelectEnum TItem="DependencyType"
+                            Label="Type"
+                                    @bind-Value="dep.Type"
+                                    Change="HandlePredecessorChanged" />
+                    </div>
+
+                    @* CAMPO LAG AÑADIDO *@
+                    <div style="width: 65px;">
+                        <TextField @bind-Value="dep.Lag"
+                                   Label="Lag"
+                                   Change="HandlePredecessorChanged"
+                                   Immediate="true" />
+                    </div>
+
+                    @* Acciones *@
+                    <div class="d-flex align-center">
+                        <IconButton Icon="@Icons.Material.Filled.ArrowUpward"
+                                    Variant="Variant.Text"
+                                    Size="Size.Small"
+                                    Color="Color.Primary"
+                                    Disabled="@(index == 0)"
+                                    ToolTip="Move Up"
+                                    OnClick="@(() => MoveUp(dep))" />
+
+                        <IconButton Icon="@Icons.Material.Filled.ArrowDownward"
+                                    Variant="Variant.Text"
+                                    Size="Size.Small"
+                                    Color="Color.Primary"
+                                    Disabled="@(index == Dependencies.Count - 1)"
+                                    ToolTip="Move Down"
+                                    OnClick="@(() => MoveDown(dep))" />
+
+                        <IconButton Icon="@Icons.Material.Filled.Delete"
+                                    Variant="Variant.Text"
+                                    Size="Size.Small"
+                                    Color="Color.Error"
+                                    ToolTip="Remove"
+                                    OnClick="@(() => Remove(dep))" />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+<style>
+    .dep-order-badge {
+        background-color: var(--mud-palette-primary);
+        color: white;
+        border-radius: 4px;
+        min-width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .dep-list-scroll {
+        max-height: 250px;
+        overflow-y: auto;
+        padding-right: 4px;
+        overflow-x: hidden;
+    }
+
+        .dep-list-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .dep-list-scroll::-webkit-scrollbar-thumb {
+            background: var(--mud-palette-lines-default);
+            border-radius: 10px;
+        }
+
+    .mud-bg-gray-light {
+        background-color: rgba(0,0,0,0.02);
+    }
+
+    .border-1 {
+        border: 1px solid;
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>
+@code{
+    private async Task OnTypeChanged(GanttDependencyDto dep, DependencyType newValue)
+    {
+        dep.Type = newValue;
+        await OnChanged.InvokeAsync();
+    }
+}

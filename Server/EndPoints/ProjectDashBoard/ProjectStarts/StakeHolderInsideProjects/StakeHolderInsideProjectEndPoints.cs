@@ -8,6 +8,7 @@ using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Dtos.StakeHolders;
 using Shared.Dtos.Starts.StakeHolderInsideProjectInsideProjects;
+using Shared.Enums.DashBoardTable;
 using Shared.Enums.StakeHolderTypes;
 using System.Linq.Expressions;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProjects
@@ -63,11 +64,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProje
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllStakeHolderInsideProjects).Name}{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(project.Id, stakeholder.Id, DashBoardsStartTable.StakeHolders);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -124,12 +122,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProje
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyId = $"{typeof(GetStakeHolderInsideProjectById).Name}-{dto.Id}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyAll = $"{typeof(GetAllStakeHolderInsideProjects).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(project.Id, stakeholder.Id, DashBoardsStartTable.StakeHolders);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -199,7 +193,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProje
             // ✅ Obtener todos
             app.MapPost("GetAllStakeHolderInsideProjects", async (GetAllStakeHolderInsideProjects dto, IAppDbContext _context) =>
             {
-                var cacheKey = $"{typeof(GetAllStakeHolderInsideProjects).Name}{dto.ProjectId}";
+                var cacheKey = $"{typeof(GetAllStakeHolderInsideProjects).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Projects
@@ -273,11 +267,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProje
                 if (await _context.SaveChangesAsync() > 0)
                 {
 
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllStakeHolderInsideProjects).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(row.Id, stakeholder.Id, DashBoardsStartTable.StakeHolders);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -296,7 +287,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.StakeHolderInsideProje
             // ✅ Validar nombre único
             app.MapPost("ValidateStakeHolderInsideProjectName", async (ValidateStakeHolderInsideProjectName dto, IAppDbContext _context) =>
             {
-                var cacheKeyAll = $"{typeof(GetAllStakeHolderInsideProjects).Name}{dto.ProjectId}";
+                var cacheKeyAll = $"{typeof(GetAllStakeHolderInsideProjects).Name}-{dto.ProjectId}";
                 var row = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.Projects

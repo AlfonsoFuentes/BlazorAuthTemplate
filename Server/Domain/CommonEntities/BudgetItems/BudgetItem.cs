@@ -1,74 +1,146 @@
 ﻿
+using Shared.ExtensionsMethods;
+using Shared.Enums.BudgetCategorys;
 
 namespace Server.Domain.CommonEntities.BudgetItems
 {
-    public abstract class BudgetItem : Entity
+
+
+    public class BudgetItem : Entity
     {
-        
-
-        public virtual string Letter { get; set; } = string.Empty;
-        protected virtual double _BudgetUSD => _SettedBudgetUSD;
-        protected virtual double _SettedBudgetUSD { get; set; }
-        public double BudgetUSD
-        {
-            get => _BudgetUSD;
-            set => _SettedBudgetUSD = value;
-        }
-        public bool IsAlteration { get; set; } = false;
-        public bool IsTaxes { get; set; } = false;
-        public Project Project { get; set; } = null!;
+        // --- 1. IDENTIFICACIÓN Y CONFIGURACIÓN ---
+     
         public Guid ProjectId { get; set; }
-        [NotMapped]
-        public virtual int OrderList => 0;
+        public virtual Project Project { get; set; } = default!;
 
-        [ForeignKey("SelectedId")]
-        public List<TaxesItem> TaxesSelecteds { get; set; } = new();
+        // Aquí vive la magia: El Enum con Atributos
+        public BudgetCategory Category { get; set; }
+
+        public string Name { get; set; } = string.Empty; // Descripción corta
+        public string Description { get; set; } = string.Empty; // Descripción larga (opcional)
+        public string Unit { get; set; } = "UND";
+
+        // --- 2. VALORES FINANCIEROS (Inputs & Persistencia) ---
+
+        public double Quantity { get; set; } = 1;
+
+        // En Directos: Input manual. En Especiales: Calculado por el motor.
+        public decimal UnitPriceUSD { get; set; }
+
+        // VALOR PERSISTIDO EN BD
+        // Se calcula como (Qty * UnitPrice) al guardar o por el BudgetCalculator.
+        public decimal BudgetUSD { get; set; }
+
+
+        // --- 3. LÓGICA DE CLASIFICACIÓN (Helpers en Memoria) ---
+
         [NotMapped]
-        public string Nomenclatore => $"{Letter}{Order}";
-        public string Name { get; set; } = string.Empty;
+        public string Letter => Category.GetLetter(); // Usa la extensión/atributo
+
+        [NotMapped]
+        public string Nomenclatore => $"{Category.GetLetter()}{Order}"; // Ej: "A1", "F5"
+
+        [NotMapped]
+        public string NomenclatoreName => $"{Nomenclatore}-{Name}"; // Ej: "F5-Tubería Principal"
+
+        // Helpers Booleanos para tu lógica de negocio
+        [NotMapped]
+        public bool IsExpense => Category == BudgetCategory.Alteration; // Reemplaza a IsAlteration manual
+
+        [NotMapped]
+        public bool IsCapital => !IsExpense;
+
+        [NotMapped]
+        public bool IsSystemCalculated => Category.IsSpecialCalculation(); // Tax, Eng, Cont
+
+        // Esto reemplaza tu "IsTaxes" manual
+        [NotMapped]
+        public bool IsTaxes => Category == BudgetCategory.Tax;
+
+        [NotMapped]
+        public bool IsNoExpenseTaxesEngCont =>
+            Category != BudgetCategory.Tax ||
+            Category != BudgetCategory.Alteration ||
+            Category != BudgetCategory.Engineering ||
+            Category != BudgetCategory.Contingency;
+
+
+        // --- 4. RELACIONES (PURCHASE ORDERS - Mantenidas igual) ---
+
+        [ForeignKey("BudgetItemId")]
+        public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; } = new List<PurchaseOrderItem>();
+
+        // Cálculos de Ejecución (Estos dependen de las POs, se quedan calculados)
+        [NotMapped]
+        public double ActualUSD => PurchaseOrderItems?.Sum(x => x.ActualItemUSD) ?? 0;
+
+        [NotMapped]
+        public double CommitmentUSD => PurchaseOrderItems?.Sum(x => x.CommitmentItemUSD) ?? 0;
+
+        [NotMapped]
+        public double PotentialUSD => PurchaseOrderItems?.Sum(x => x.PotentialItemUSD) ?? 0;
+
+        [NotMapped]
+        public double AssignedUSD => ActualUSD + CommitmentUSD + PotentialUSD;
+
+        [NotMapped]
+        public double ToCommitUSD => (double)BudgetUSD - AssignedUSD; // Cuanto me queda por gastar
+
+        // Listas de Ayuda para POs
+        [NotMapped]
+        public List<PurchaseOrder> PurchaseOrders => PurchaseOrderItems?.Select(x => x.PurchaseOrder).Distinct().ToList() ?? new();
+
+        [NotMapped]
+        public List<PurchaseOrder> PurchaseOrderCloseds => PurchaseOrders.Where(x => x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Closed.Id).ToList();
+
+        [NotMapped]
+        public List<PurchaseOrder> PurchaseOrderOpens => PurchaseOrders.Where(x => x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Approved.Id).ToList();
+
+        [NotMapped]
+        public List<PurchaseOrder> PurchaseOrderReceivings => PurchaseOrders.Where(x => x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Receiving.Id).ToList();
+
 
 
 
         [ForeignKey("BudgetItemId")]
-        public List<PurchaseOrderItem> PurchaseOrderItems { get; set; } = new();
+        public virtual ICollection<BudgetItemGanttTask> BudgetItemGanttTasks { get; set; } = new List<BudgetItemGanttTask>();
 
         [NotMapped]
-        public string NomenclatoreName => $"{Nomenclatore}-{Name}";
-        [NotMapped]
-        public double ActualUSD => PurchaseOrderItems == null || PurchaseOrderItems.Count == 0 ? 0 : PurchaseOrderItems.Sum(x => x.ActualItemUSD);
-        [NotMapped]
-        public double CommitmentUSD => PurchaseOrderItems == null || PurchaseOrderItems.Count == 0 ? 0 : PurchaseOrderItems.Sum(x => x.CommitmentItemUSD);
-        [NotMapped]
-        public double PotentialUSD => PurchaseOrderItems == null || PurchaseOrderItems.Count == 0 ? 0 : PurchaseOrderItems.Sum(x => x.PotentialItemUSD);
-        [NotMapped]
-        public double AssignedUSD => ActualUSD + CommitmentUSD + PotentialUSD;
-        [NotMapped]
-        public double ToCommitUSD => BudgetUSD - AssignedUSD;
+        public List<GanttTask> RelatedGanttTasks => BudgetItemGanttTasks?.Select(x => x.GanttTask).ToList() ?? new();
 
+        // RISKS
+        [ForeignKey("BudgetItemId")]
+        public virtual ICollection<RiskBudgetItem> RiskBudgetItems { get; set; } = new List<RiskBudgetItem>();
 
         [NotMapped]
-        public List<PurchaseOrder> PurchaseOrders => PurchaseOrderItems == null || PurchaseOrderItems.Count == 0 ? new() : PurchaseOrderItems.Select(x => x.PurchaseOrder).ToList();
+        public List<RiskMatrix> RelatedRisks => RiskBudgetItems?.Select(x => x.RiskMatrix).ToList() ?? new();
+
+        // KNOWN RISKS
+        [ForeignKey("BudgetItemId")]
+        public virtual ICollection<KnownRiskBudgetItem> KnownRiskBudgetItems { get; set; } = new List<KnownRiskBudgetItem>();
 
         [NotMapped]
-        public List<PurchaseOrder> PurchaseOrderCloseds => PurchaseOrderItems.Count == 0 ? new() : PurchaseOrders.Where(x => x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Closed.Id).ToList();
+        public List<KnownRisk> RelatedKnownRisks => KnownRiskBudgetItems?.Select(x => x.KnownRisk).ToList() ?? new();
+
+        // QUALITY
+        [ForeignKey("BudgetItemId")]
+        public virtual ICollection<QualityBudgetItem> QualityBudgetItems { get; set; } = new List<QualityBudgetItem>();
+
         [NotMapped]
-        public List<PurchaseOrder> PurchaseOrderOpens => PurchaseOrderItems.Count == 0 ? new() : PurchaseOrders.Where(x =>
-
-        x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Approved.Id).ToList();
-
-        [NotMapped]
-        public List<PurchaseOrder> PurchaseOrderOpenReceivings => PurchaseOrderItems.Count == 0 ? new() : PurchaseOrders.Where(x =>
-        x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Receiving.Id ||
-        x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Approved.Id).ToList();
-        [NotMapped]
-        public List<PurchaseOrder> PurchaseOrderReceivings => PurchaseOrderItems.Count == 0 ? new() : PurchaseOrders.Where(x =>
-
-        x.PurchaseOrderStatus == PurchaseOrderStatusEnum.Receiving.Id).ToList();
-
-        public ICollection<BudgetItemNewGanttTask> BudgetItemNewGanttTasks { get; set; } = new List<BudgetItemNewGanttTask>();
-
-        public List<NewGanttTask> NewGanttTasks => BudgetItemNewGanttTasks.Select(x => x.NewGanttTask).ToList() ?? new();
-
+        public List<Quality> RelatedQualityItems => QualityBudgetItems?.Select(x => x.Quality).ToList() ?? new();
     }
+    internal class BudgetItemItemConfig : IEntityTypeConfiguration<BudgetItem>
+    {
+        public void Configure(EntityTypeBuilder<BudgetItem> builder)
+        {
+            builder.HasQueryFilter(x => x.IsDeleted == false);
+            builder.HasMany(x => x.PurchaseOrderItems)
+                .WithOne(x => x.BudgetItem)
+                .HasForeignKey(x => x.BudgetItemId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+
+
+        }
+    }
 }

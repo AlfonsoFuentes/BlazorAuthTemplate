@@ -1,0 +1,95 @@
+﻿@using Shared.Dtos.Projects._1._Starts.QualityBudgetItems
+@using Shared.Dtos.Starts.Qualitys
+@using Shared.Dtos.BudgetItems
+@using Shared.Enums.BudgetCategorys
+
+<MudDialog>
+    <TitleContent>
+        Investments for: @QualityName
+    </TitleContent>
+    <DialogContent>
+        <TemplateCard2 TValue="QualityBudgetItemDto"
+                       Items="_items"
+                       Model="Model"
+                       IsLoading="_loading"
+                       Create="StartCreate"
+                       Edit="StartEdit"
+                       Submit="Submit"
+                       Delete="DeleteAsync"
+                       Cancel="Cancel"
+                       HasOrder="false"
+                       DisableAddEdit="DisableAddEdit"
+                       Title="Linked Budget Items">
+
+            <FormContent Context="ctx">
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <TextField @bind-Value="@ctx.Model.BudgetName"
+                                   Label="Concept / Name"
+                                   Lines="2"
+                                   ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.BudgetName)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="4">
+                        <DoubleNumericField @bind-Value="ctx.Model.Quantity"
+                                            Label="Quantity"
+                                            ValidateAsync="@ctx.ValidateAsync"
+                                            For="@(() => ctx.Model.Quantity)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="4">
+                        <DecimalNumericField @bind-Value="ctx.Model.UnitPriceUSD"
+                                             Label="Unit Price (USD)"
+                                             ValidateAsync="@ctx.ValidateAsync"
+                                             Icon="@Icons.Material.Filled.AttachMoney"
+                                             For="@(() => ctx.Model.UnitPriceUSD)" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="4">
+                        <MudStack Spacing="1" Style="width:100%;">
+
+                            <MudPaper Class="pa-2 px-3 mud-theme-primary d-flex align-center justify-space-between"
+                                      Elevation="0"
+                                      Width="100%"
+                                      Style="border-radius: 6px;">
+
+                                <div class="d-flex flex-column">
+                                    <MudText Typo="Typo.caption" Style="color: rgba(255,255,255, 0.7); font-weight:500; letter-spacing: 0.5px;">
+                                        TOTAL BUDGET
+                                    </MudText>
+
+                                    <MudText Typo="Typo.subtitle1" Style="color: #ffffff; font-weight: 800; line-height: 1.2;">
+                                        @ctx.Model.BudgetUSD.ToCurrencyCulture()
+                                    </MudText>
+                                </div>
+
+                                <MudIcon Icon="@Icons.Material.Filled.MonetizationOn"
+                                         Size="Size.Medium"
+                                         Style="color: rgba(255,255,255, 0.3);" />
+                            </MudPaper>
+
+                            <ValidationMessage For="() => ctx.Model.BudgetUSD"
+                                               Style="color:red; font-size:x-small; margin-left:4px;" />
+                        </MudStack>
+
+
+
+                    </MudItem>
+                </MudGrid>
+            </FormContent>
+
+            <MainContent Context="item">
+                <div class="d-flex justify-space-between align-center w-100">
+                    <MudText><b>@item.Nomenclatore</b> - @item.BudgetName</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Primary">
+                        @item.BudgetUSD.ToCurrencyCulture()
+                    </MudText>
+                </div>
+            </MainContent>
+
+        </TemplateCard2>
+       
+    </DialogContent>
+   
+</MudDialog>

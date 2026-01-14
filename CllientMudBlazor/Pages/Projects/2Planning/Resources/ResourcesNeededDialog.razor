@@ -1,0 +1,37 @@
+﻿
+@inherits ComponentBase
+
+<TemplateDialog TValue="ResourcesNeededDto"
+                Model="@Model"
+                OnSubmit="Submit"
+                OnCancel="Cancel">
+
+    <Content Context="ctx">
+        <MudGrid>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Name"
+                           Label="Name"
+                         
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Name)">
+                </TextField>
+
+            </MudItem>
+            <MudItem xs="12">
+                <TextField @bind-Value="@ctx.Model.Speciality"
+                           Label="Speciality"
+                          
+                           ValidateAsync="@ctx.ValidateAsync"
+                           For="@(() => ctx.Model.Speciality)">
+                </TextField>
+
+            </MudItem>
+           
+        </MudGrid>
+    </Content>
+
+</TemplateDialog>
+
+@code {
+
+}

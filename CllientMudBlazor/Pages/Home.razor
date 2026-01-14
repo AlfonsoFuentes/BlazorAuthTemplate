@@ -1,70 +1,136 @@
 ﻿@page "/"
-@using CllientMudBlazor.Pages.MainDashBoards
+@using CllientMudBlazor.Pages.Brands
+@using CllientMudBlazor.Pages.Suppliers
 
-@if (_selectedProject == null)
-{
-    <MudGrid Spacing="4">
-        
-        <MudItem xs="12">
-            <MudText Typo="Typo.subtitle1" Class="mb-3">Recent Projects</MudText>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var project in _recentProjects.Take(3))
-                {
-                    <ProjectChip Project="@project" />
-                }
-            </div>
-        </MudItem>
-        <MudItem xs="12">
-            <MudNavLink Href="/suppliers" Match="NavLinkMatch.Prefix">Suppliers</MudNavLink>
-            <MudNavLink Href="/Brands" Match="NavLinkMatch.Prefix">Brands</MudNavLink>
-            <MudNavLink Href="/stakeholders" Match="NavLinkMatch.Prefix">StakeHolders</MudNavLink>
-            Aqui vamos a poner el Global Report cuando lo hagamos
-        </MudItem>
-    </MudGrid>
-}
-else
-{
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+
     
-}
+
+    <MudPaper Elevation="0" Class="pa-2 mb-6 d-flex flex-wrap gap-2" Outlined="true" Style="background-color: #F5F5F5; border-radius: 8px;">
+
+        <MudButton Variant="@GetVariant(0)" Color="Color.Primary" OnClick="() => ActiveView = 0"
+                   StartIcon="@Icons.Material.Filled.Dashboard">Dashboard</MudButton>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+
+        <MudButton Variant="@GetVariant(1)" Color="Color.Primary" OnClick="() => ActiveView = 1"
+                   StartIcon="@Icons.Material.Filled.Inventory">Suppliers</MudButton>
+
+        <MudButton Variant="@GetVariant(2)" Color="Color.Primary" OnClick="() => ActiveView = 2"
+                   StartIcon="@Icons.Material.Filled.BrandingWatermark">Brands</MudButton>
+
+        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+        <MudButton Variant="@GetVariant(4)" Color="Color.Primary" OnClick="() => ActiveView = 4"
+                   StartIcon="@Icons.Material.Filled.Groups">Stakeholders</MudButton>
+        <MudButton Variant="@GetVariant(3)" Color="Color.Primary" OnClick="() => ActiveView = 3"
+                   StartIcon="@Icons.Material.Filled.ShoppingCart">Global PO Log</MudButton>
+
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="mt-8">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudText>Loading Portfolio Data...</MudText>
+        </MudStack>
+    }
+    else
+    {
+        <div class="animate-fade-in">
+            @switch (ActiveView)
+            {
+                case 0:
+                    <MudGrid>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudPaper Class="pa-4 d-flex align-center justify-space-between mud-theme-primary" Elevation="3"
+                                      Style="border-radius: 12px; background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);">
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="opacity:0.8; letter-spacing:1px;">TOTAL PROJECTS</MudText>
+                                    <MudText Typo="Typo.h4" Style="font-weight:800;">@_projects.Count</MudText>
+                                </div>
+                                <MudIcon Icon="@Icons.Material.Filled.FolderCopy" Size="Size.Large" Style="opacity:0.3;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudPaper Class="pa-4 d-flex align-center justify-space-between" Elevation="3"
+                                      Style="border-radius: 12px; background: linear-gradient(135deg, #00897B 0%, #004D40 100%); color:white;">
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="opacity:0.8; letter-spacing:1px;">IN EXECUTION</MudText>
+                                    <MudText Typo="Typo.h4" Style="font-weight:800;">@_countExecution</MudText>
+                                </div>
+                                <MudIcon Icon="@Icons.Material.Filled.RocketLaunch" Size="Size.Large" Style="opacity:0.3;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudPaper Class="pa-4 d-flex align-center justify-space-between" Elevation="3"
+                                      Style="border-radius: 12px; background: linear-gradient(135deg, #7E57C2 0%, #4527A0 100%); color:white;">
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="opacity:0.8; letter-spacing:1px;">PLANNING</MudText>
+                                    <MudText Typo="Typo.h4" Style="font-weight:800;">@_countPlanning</MudText>
+                                </div>
+                                <MudIcon Icon="@Icons.Material.Filled.Architecture" Size="Size.Large" Style="opacity:0.3;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudPaper Class="pa-4 d-flex align-center justify-space-between" Elevation="3"
+                                      Style="border-radius: 12px; background: linear-gradient(135deg, #546E7A 0%, #263238 100%); color:white;">
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="opacity:0.8; letter-spacing:1px;">CLOSED</MudText>
+                                    <MudText Typo="Typo.h4" Style="font-weight:800;">@_countClosed</MudText>
+                                </div>
+                                <MudIcon Icon="@Icons.Material.Filled.TaskAlt" Size="Size.Large" Style="opacity:0.3;" />
+                            </MudPaper>
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+                                Select a category from the toolbar above to manage Master Data (Suppliers, Brands) or view Global POs.
+                            </MudAlert>
+                        </MudItem>
+                    </MudGrid>
+                    break;
+
+                case 1:
+               
+                    <MudPaper Elevation="1" Class="pa-4">
+                       <SuppliersCard></SuppliersCard>
+                    </MudPaper>
+                    break;
+
+                case 2:
+                   
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <BrandCards></BrandCards>
+                    </MudPaper>
+                    break;
+
+                case 3:
+                 
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <MudAlert Severity="Severity.Normal">Global PO Log Component Here</MudAlert>
+                    </MudPaper>
+                    break;
+                case 4:
+                
+                    <MudPaper Elevation="1" Class="pa-4">
+                        <StakeHolderCards />
+                    </MudPaper>
+                    break;
+            }
+        </div>
+    }
+
+</MudContainer>
+
 
 
 
 @code {
-    private ProjectDashboardDto? _selectedProject;
-    private string _selectedProjectId = string.Empty;
-    private List<ProjectDashboardDto> _projects = new();
-    private List<ProjectDashboardDto> _recentProjects = new();
+   
 
-    protected override void OnInitialized()
-    {
-       
-    }
-
-    private void OnProjectSelected(ProjectDashboardDto project)
-    {
-        _selectedProjectId = project.Id.ToString();
-        _selectedProject = project;
-    }
-
-    private void SelectProject(ProjectDashboardDto project) => OnProjectSelected(project);
-    private void OnNewProject() => NavManager.NavigateTo("/project/new");
-    private void OnGlobalReport() => NavManager.NavigateTo("/reports/global");
-
-    private Color GetPhaseColor(ProjectDashboardDto p) => p.Status.Id switch
-    {
-        2 => Color.Success,
-        1 => Color.Warning,
-        0 => Color.Primary,
-        _ => Color.Default
-    };
-
-    private string GetPhaseIcon(ProjectDashboardDto p) => p.Status.Id switch
-    {
-        2 => "🟢",
-        1 => "✅",
-        0 => "🔵",
-        3 => "⚫",
-        4 => "🗑️",
-        _ => "❓"
-    };
+   
 }

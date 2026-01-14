@@ -1,0 +1,20 @@
+﻿<h3>Expends</h3>
+<IconButton Color="Color.Secondary"
+            ToolTip="Go Up"
+            Icon="@Icons.Material.Filled.Upcoming"
+            OnClick="HideTable" />
+@code {
+    [Parameter]
+    public Guid ProjectId { get; set; }
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+
+    // 🔹 Filtro gestionado aquí (como querías)
+
+    [Parameter]
+    public EventCallback HideTable { get; set; }
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+}

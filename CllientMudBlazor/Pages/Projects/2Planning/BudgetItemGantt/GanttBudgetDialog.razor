@@ -1,0 +1,131 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+@using Shared.Dtos.Projects._2._Plannings.BudgetItemGanttTasks
+@using Shared.Enums.BudgetCategorys
+@inherits MudComponentBase
+
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Class="mr-2 mb-n1" />
+            Budget Assignments: @TaskName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <TemplateCard2 TValue="BudgetItemGanttTaskDto"
+                       Items="_assignments"
+                       Model="Model"
+                       IsLoading="_loading"
+                       Create="StartCreate"
+                       Edit="StartEdit"
+                       Submit="SubmitAssignment"
+                       Delete="DeleteAssignment"
+                       Cancel="CancelEdit"
+                       HasOrder="false"
+                       Title="Linked Budget Items"
+                       DisableAddEdit="DisableAddEdit">
+
+            <FormContent Context="ctx">
+                <MudGrid Spacing="1">
+                    @* Selector de Item o Texto de solo lectura en edición *@
+                    <MudItem xs="12" sm="7">
+                        @if (ctx.Model.Id == Guid.Empty)
+                        {
+                            <Autocomplete TValue="BudgetItemDto"
+                                          Label="Select Budget Item"
+                                          @bind-Value="ctx.Model.BudgetItem"
+                                          SearchFunc="@SearchBudgetItems"
+                                          Change="ChangeBudgetItem"
+                                          ToStringFunc="@(t => t == null ? null : $"{t.Nomenclatore} - {t.Name}")"
+                                          For="@(() => ctx.Model.BudgetItem)"
+                                          ValidateAsync="ctx.ValidateAsync" />
+                        }
+                        else
+                        {
+                            <Field Label="Budget Item (Editing)">@($"{ctx.Model.Nomenclatore} - {ctx.Model.BudgetName}")</Field>
+                           
+                        }
+                    </MudItem>
+
+                    @* Monto a asignar *@
+                    <MudItem xs="12" sm="5">
+                        <DecimalNumericField @bind-Value="ctx.Model.AmountAssigned"
+                                             Label="Amount to Assign"
+                                             Icon="@Icons.Material.Filled.AttachMoney"
+                                             For="@(() => ctx.Model.AmountAssigned)"
+                                             ValidateAsync="ctx.ValidateAsync" />
+                    </MudItem>
+
+                    @* Panel de Análisis de Disponibilidad *@
+                    @if (ctx.Model.BudgetItem != null)
+                    {
+                        <MudItem xs="12">
+                            <MudPaper Outlined="true" Class="pa-3" Style="background-color: var(--mud-palette-background-grey);">
+                                <MudStack Spacing="1">
+                                    <div class="d-flex justify-space-between align-center">
+                                        <MudText Typo="Typo.subtitle2">Availability Analysis</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                                            @ctx.Model.Category.ToString()
+                                        </MudChip>
+                                    </div>
+                                    
+                                    <MudDivider Class="my-1"/>
+                                    
+                                    <MudGrid >
+                                        @* Total del ítem en el presupuesto base *@
+                                        <MudItem xs="4">
+                                            <Field Label="Total Item Budget">@ctx.Model.TotalBudgetItemUSD.ToCurrencyCulture()</Field>
+                                        </MudItem>
+
+                                        @* Dinero ya bloqueado por otras tareas del proyecto *@
+                                        <MudItem xs="4">
+                                            <Field Label="Assigned to Others">
+                                                <MudText Color="Color.Warning" Typo="Typo.body2">
+                                                    @ctx.Model.SpentByOthers.ToCurrencyCulture()
+                                                </MudText>
+                                            </Field>
+                                        </MudItem>
+
+                                        @* Saldo que quedará en el presupuesto global tras guardar *@
+                                        <MudItem xs="4">
+                                            <Field Label="Remaining After Save">
+                                                <MudText Color="@(ctx.Model.NewAvailableBalance < 0 ? Color.Error : Color.Success)" Typo="Typo.body2">
+                                                    <b>@ctx.Model.NewAvailableBalance.ToCurrencyCulture()</b>
+                                                </MudText>
+                                            </Field>
+                                        </MudItem>
+                                    </MudGrid>
+
+                                    @* Barra de progreso del uso del ítem *@
+                                    <MudProgressLinear Color="@(ctx.Model.NewAvailableBalance < 0 ? Color.Error : Color.Primary)" 
+                                                       Value="@ctx.Model.UsagePercentage" 
+                                                       Class="mt-2" />
+                                    <MudText Typo="Typo.caption" Align="Align.Right">
+                                        This task uses @ctx.Model.UsagePercentage.ToString("N1")% of the total item budget.
+                                    </MudText>
+                                </MudStack>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </FormContent>
+
+            @* Lista de lo que ya está asignado a esta tarea *@
+            <MainContent Context="item">
+                <div class="d-flex justify-space-between align-center w-100">
+                    <div class="d-flex flex-column">
+                        <MudText Typo="Typo.body1"><b>@item.Nomenclatore</b> - @item.BudgetName</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@item.Category.ToString()</MudText>
+                    </div>
+                    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Style="font-weight: 700;">
+                        @item.AmountAssigned.ToCurrencyCulture()
+                    </MudText>
+                </div>
+            </MainContent>
+
+        </TemplateCard2>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>

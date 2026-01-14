@@ -5,6 +5,7 @@ using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Dtos.StakeHolders;
 using Shared.Dtos.Starts.ExpertJudgements;
+using Shared.Enums.DashBoardTable;
 namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
 {
 
@@ -53,19 +54,18 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
                 if (project != null)
                     project.LastModifiedOn = DateTime.UtcNow;
 
-                var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
-               
-                var maxOrder = await getNextOrder.GetNextOrderAsync<ExpertJudgement>(cacheKeyAll, dto.ProjectId);
-                row.Order = maxOrder;
+                var maxOrder = await _context.ExpertJudgements
+                    .Where(x => x.ProjectId == dto.ProjectId)
+                    .MaxAsync(x => (int?)x.Order) ?? 0;
+
+                row.Order = maxOrder + 1;
+              
 
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById,cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.ExpertJudgment);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -96,12 +96,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyId = $"{typeof(GetExpertJudgementById).Name}-{dto.Id}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyId, cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.ExpertJudgment);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -155,7 +151,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
             // ✅ Obtener todos
             app.MapPost("GetAllExpertJudgements", async (GetAllExpertJudgements dto, IAppDbContext _context) =>
             {
-                var cacheKey = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
+                var cacheKey = $"{typeof(GetAllExpertJudgements).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.ExpertJudgements
@@ -200,11 +196,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
                         i++;
                     }
                     await _context.SaveChangesAsync();
-                    var cacheKeyExportProjectCharterPDF = $"{typeof(ExportProjectChartedPDF).Name}-{dto.ProjectId}";
-                    var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
-                    var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
-                    var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardById).Name}-{dto.ProjectId}";
-                    _context.InvalidateCache(cacheKeyAll, cacheKeyProjectDashBoards, cacheKeyProjectDashBoardsById, cacheKeyExportProjectCharterPDF);
+                    var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.ExpertJudgment);
+                    _context.InvalidateCache(keys);
                     return Results.Ok(new GeneralDto
                     {
                         Succeeded = true,
@@ -223,11 +216,12 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
             // ✅ Validar nombre único
             app.MapPost("ValidateExpertJudgementName", async (ValidateExpertJudgementName dto, IAppDbContext _context) =>
             {
-                var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
+                var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}-{dto.ProjectId}";
                 var rows = await _context.GetOrAddCacheAsync(async () =>
                 {
                     return await _context.ExpertJudgements
                     .Include(x => x.Expert)
+                       .Where(x => x.ProjectId == dto.ProjectId)
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable().ToListAsync();
@@ -275,7 +269,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.ExpertJudgements
                 {
 
 
-                    var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}{dto.ProjectId}";
+                    var cacheKeyAll = $"{typeof(GetAllExpertJudgements).Name}-{dto.ProjectId}";
 
                     _context.InvalidateCache(cacheKeyAll);
                     return Results.Ok(new GeneralDto

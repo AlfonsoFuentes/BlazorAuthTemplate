@@ -20,10 +20,6 @@
             }, TaskScheduler.Default);
         }
 
-        // Opción 2 (alternativa): asíncrono explícito (útil si algún suscriptor es crítico)
-        // public async Task NotifyProjectsChangedAsync()
-        // {
-        //     await OnProjectsChanged();
-        // }
+       
     }
 }

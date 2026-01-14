@@ -28,57 +28,56 @@
 @using CllientMudBlazor.Pages.Projects.Executions
 @using CllientMudBlazor.Pages.Projects.Monitorings
 @using CllientMudBlazor.Pages.Projects.Planning
-@using CllientMudBlazor.Pages.Projects.Starts
+@using CllientMudBlazor.Pages.Projects._1Starts
+@using Shared.Dtos.Plannings.RiskMatrixs
 @using Shared.Interfaces
-@using Shared.Dtos.Starts.AcceptanceCriterias
-@using CllientMudBlazor.Pages.Projects.Starts.StartTemplates
-@using Shared.Dtos.Starts.BackGrounds
-@using Shared.Dtos.Starts.Constrainsts
-@using Shared.Dtos.Starts.Scopes
+@using Shared.Dtos.ProjectDefinitions
+@using CllientMudBlazor.Pages.Projects._1Starts.StartTemplates
+@using Shared.Dtos.BudgetItems
 @using Shared.Dtos.Starts.ExpertJudgements
 @using Shared.Dtos.Starts.KnownRisks;
-@using Shared.Dtos.Starts.Objectives;
+@using Shared.Dtos.Suppliers
+@using Shared.Enums
+
 @using Shared.Dtos.Starts.Requirements;
-@using Shared.Dtos.Starts.Assumptions
+
 @using Shared.Dtos.Starts.Qualitys
-@using Shared.Dtos.Starts.Bennefits;
+@using CllientMudBlazor.Pages.MainDashBoards
+
+@using CllientMudBlazor.Pages.Projects._2Planning
 @using Shared.Dtos.Starts.StakeHolderInsideProjectInsideProjects
 @using CllientMudBlazor.Pages.StakeHolders
 @using Shared.Dtos.StakeHolders
 @using Shared.Enums.StakeHolderTypes
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Alterations
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Contingencys
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.EHSs
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Electricals
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.EngineeringDesigns
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Engineerings
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Equipments
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Foundations
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Instruments
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Paintings
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Pipes
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Structurals
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Taxes
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Testings
-@using CllientMudBlazor.Pages.Projects.Starts.Investments.Valves
-@using CllientMudBlazor.Pages.Projects.Managements.Approves
-@using CllientMudBlazor.Pages.Projects.Starts.AcceptanceCriterias
-@using CllientMudBlazor.Pages.Projects.Starts.Assumptions
-@using CllientMudBlazor.Pages.Projects.Starts.BackGrounds
-@using CllientMudBlazor.Pages.Projects.Starts.Bennefits
-@using CllientMudBlazor.Pages.Projects.Starts.Constrainsts
-@using CllientMudBlazor.Pages.Projects.Starts.ExpertJudgements
-@using CllientMudBlazor.Pages.Projects.Starts.Investments
-@using CllientMudBlazor.Pages.Projects.Starts.KnownRisks
-@using CllientMudBlazor.Pages.Projects.Starts.Objectives
-@using CllientMudBlazor.Pages.Projects.Starts.Qualitys
-@using CllientMudBlazor.Pages.Projects.Starts.Requirements
-@using CllientMudBlazor.Pages.Projects.Starts.Scopes
-@using CllientMudBlazor.Pages.Projects.Starts.StakeHolderInsideProjects
-@using CllientMudBlazor.Services.Enums
-@using Shared.Dtos.Starts.Investments
 
+@using CllientMudBlazor.Pages.Projects.Managements.Approves
+
+
+@using CllientMudBlazor.Pages.Projects._1Starts.ExpertJudgements
+@using CllientMudBlazor.Pages.Projects._1Starts.Investments
+@using CllientMudBlazor.Pages.Projects._1Starts.KnownRisks
+
+@using CllientMudBlazor.Pages.Projects._1Starts.Qualitys
+@using CllientMudBlazor.Pages.Projects._1Starts.Requirements
+
+@using CllientMudBlazor.Pages.Projects._1Starts.StakeHolderInsideProjects
+@using CllientMudBlazor.Pages.Projects._1Starts.ProjectDefinitions
+
+@using Shared.Enums.ProjectDefinitionTypes
+@using Shared.Enums.DashBoardTable
+
+@using CllientMudBlazor.Pages.Projects._2Planning.Adquisitions
+@using CllientMudBlazor.Pages.Projects._2Planning.Communications
+@using CllientMudBlazor.Pages.Projects._2Planning.Expends
+@using CllientMudBlazor.Pages.Projects._2Planning.Gantts
+@using CllientMudBlazor.Pages.Projects._2Planning.Resources
+@using CllientMudBlazor.Pages.Projects._1Starts.RiskMatrixs
+@using CllientMudBlazor.Pages.Projects._2Planning.WBSs
+@using Shared.Dtos.Projects.Plannings.Resources
 @using Shared.Commons
+@using Shared.Dtos.Projects.Plannings.Deliverables
+
+@using Shared.Dtos.Projects.Plannings.Gantts
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager

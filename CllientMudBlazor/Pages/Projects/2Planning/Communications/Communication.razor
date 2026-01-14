@@ -1,0 +1,86 @@
+﻿<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+
+    @* --- HEADER --- *@
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+        <div>
+            <MudText Typo="Typo.h4"><b>Communications Matrix</b></MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Planning Phase - Definition of Rules</MudText>
+        </div>
+        <MudStack Row="true">
+            <IconButton Color="Color.Secondary"
+                        ToolTip="Go Up"
+                        Icon="@Icons.Material.Filled.Upcoming"
+                        OnClick="OnHideTable" />
+            <IconButton Color="Color.Primary"
+                        ToolTip="Add Communication"
+                        Icon="@Icons.Material.Filled.Add"
+                        Disabled="@DisableAddEdit"
+                        OnClick="AddNew" />
+           
+        </MudStack>
+    </MudStack>
+
+    @if (IsLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+    }
+    else if (!Communications.Any())
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+            No communication rules defined yet. Click "Add Communication" to start planning.
+        </MudAlert>
+    }
+    else
+    {
+        @* --- SECCIÓN 1: RUTINAS --- *@
+        @if (PeriodicItems.Any())
+        {
+            <MudText Typo="Typo.h6" Class="mb-3 d-flex align-center" Color="Color.Info">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Class="mr-2" />
+                Periodic & Routine
+            </MudText>
+            <MudDivider Class="mb-4" />
+
+            <MudGrid Spacing="3" Class="mb-8">
+                @foreach (var comm in PeriodicItems)
+                {
+                    <CommunicationCard Item="comm"
+                                       OnEdit="Edit"
+                                       OnDelete="Delete"
+                                       DisableActions="DisableAddEdit" />
+                }
+            </MudGrid>
+        }
+
+        @* --- SECCIÓN 2: EVENTOS --- *@
+        @if (TaskBasedItems.Any())
+        {
+            <MudText Typo="Typo.h6" Class="mb-3 d-flex align-center" Color="Color.Warning">
+                <MudIcon Icon="@Icons.Material.Filled.Link" Class="mr-2" />
+                Task & Event Driven
+            </MudText>
+            <MudDivider Class="mb-4" />
+
+            <MudGrid Spacing="3">
+                @foreach (var comm in TaskBasedItems)
+                {
+                    <CommunicationCard Item="comm"
+                                       OnEdit="Edit"
+                                       OnDelete="Delete"
+                                       DisableActions="DisableAddEdit" />
+                }
+            </MudGrid>
+        }
+    }
+</MudContainer>
+
+
+
+@code {
+   
+   
+    async Task OnHideTable()
+    {
+        if (HideTable.HasDelegate) await HideTable.InvokeAsync();
+    }
+}

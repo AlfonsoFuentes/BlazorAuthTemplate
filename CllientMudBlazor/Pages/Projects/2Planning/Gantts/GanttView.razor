@@ -1,0 +1,195 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+@using MudBlazor
+
+
+<style>
+    /* Estilos base para filas con hijos */
+    .gantt-task-parent td {
+        font-weight: 600 !important;
+    }
+
+    /* Fila seleccionada */
+    .gantt-selected {
+        background-color: #e3f2fd !important; /* azul claro de MudBlazor */
+    }
+
+        .gantt-selected td {
+            color: #1565c0 !important; /* azul oscuro para texto general */
+            font-weight: 600 !important;
+        }
+
+    /* CORRECCIÓN DE VISIBILIDAD:
+           Forzamos que el texto dentro de la columna de presupuesto
+           tenga siempre un color oscuro/primario, incluso si la fila está seleccionada.
+        */
+    .budget-text {
+        font-weight: 700 !important;
+        color: var(--mud-palette-primary) !important;
+    }
+
+    .gantt-selected .budget-text {
+        color: #0d47a1 !important; /* Un azul aún más oscuro para contraste en selección */
+    }
+</style>
+
+<MudPaper Class="pa-4">
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h5">Gantt Chart</MudText>
+        @if (HideTable.HasDelegate)
+        {
+            <IconButton Color="Color.Secondary"
+                        ToolTip="Go Up"
+                        Icon="@Icons.Material.Filled.Upcoming"
+                        OnClick="HideTable" />
+        }
+        <IconButton Color="Color.Primary"
+                    ToolTip="Add Task"
+                    Icon="@Icons.Material.Filled.Add"
+                    OnClick="OpenCreateDialog" />
+        <MudSpacer />
+    </MudStack>
+
+    @if (tasks == null)
+    {
+        <MudProgressCircular Class="mt-8" Indeterminate="true" />
+    }
+    else if (!tasks.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">No tasks yet. Click "Add Task" to start.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="@tasks" Hover="true" Dense="true" Class="mt-1" SelectedItem="@SelectedTask" T="GanttDto" @ref="mudTable"
+                  RowClass="cursor-pointer" RowClassFunc="@SelectedRowClassFunc" Bordered="true" OnRowClick="OnRowClick">
+            <ToolBarContent>
+                <IconButton ToolTip="Edit Task"
+                            Color="Color.Info"
+                            OnClick="OpenEditDialog"
+                            Variant="Variant.Outlined"
+                            Disabled="@DisableAddEdit"
+                            Icon="@Icons.Material.Outlined.Edit" />
+                <IconButton ToolTip="Move Up"
+                            Color="Color.Info"
+                            OnClick="MoveTaskUp"
+                            Disabled="@(DisableAddEdit ||(SelectedTask==null?true: !WbsActions.CanMoveUp(SelectedTask!, tasks)))"
+                            Icon="@Icons.Material.Outlined.ArrowUpward" />
+
+                <IconButton ToolTip="Move Down"
+                            Color="Color.Info"
+                            OnClick="MoveTaskDown"
+                            Disabled="@(DisableAddEdit ||(SelectedTask==null?true:  !WbsActions.CanIndentRight(SelectedTask!, tasks)))"
+                            Icon="@Icons.Material.Outlined.ArrowDownward" />
+
+                <IconButton ToolTip="Indent Right"
+                            Color="Color.Info"
+                            OnClick="IndentRight"
+                            Disabled="@(DisableAddEdit ||(SelectedTask==null?true:  !WbsActions.CanIndentRight(SelectedTask!, tasks)))"
+                            Icon="@Icons.Material.Outlined.FormatIndentIncrease" />
+
+                <IconButton ToolTip="Indent Left"
+                            Color="Color.Info"
+                            OnClick="IndentLeft"
+                            Disabled="@(DisableAddEdit ||(SelectedTask==null?true:  !WbsActions.CanIndentLeft(SelectedTask!)))"
+                            Icon="@Icons.Material.Outlined.FormatIndentDecrease" />
+                <IconButton Icon="fas fa-bullhorn"
+                            ToolTip="@(HasCommunications(SelectedTask) ? "Manage Communications" : "Add Communication Plan")"
+                            Color="@(HasCommunications(SelectedTask) ? Color.Primary : Color.Default)"
+                            Variant="@(HasCommunications(SelectedTask) ? Variant.Filled : Variant.Outlined)"
+                            OnClick="ManageCommunication"
+                            Disabled="@(DisableAddEdit || SelectedTask == null)" />
+                <IconButton ToolTip="Delete Task"
+                            Color="Color.Warning"
+                            OnClick="DeleteTask"
+                            Variant="Variant.Outlined"
+                            Disabled="@DisableAddEdit"
+                            Icon="@Icons.Material.Outlined.DeleteForever" />
+
+                <MudSpacer />
+
+                <span style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    @(SelectedTask == null ? "No selected" : SelectedTask.Name)
+                </span>
+
+            </ToolBarContent>
+            <ColGroup>
+                <col style="width: 1%;" />
+                <col style="width: 3%;" />
+                <col style="width: 5%;" />
+                <col style="width: 25%;" />
+                <col style="width: 12%;" />
+                <col style="width: 12%;" />
+                <col style="width: 8%;" />
+                <col style="width: 12%;" />
+                <col style="width: 12%;" />
+                <col style="width: 80px;" />
+            </ColGroup>
+            <HeaderContent>
+                <MudTh></MudTh>
+                <MudTh>ID</MudTh>
+                <MudTh>WBS</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Start</MudTh>
+                <MudTh>End</MudTh>
+                <MudTh>Duration</MudTh>
+                <MudTh>Dependencies</MudTh>
+                <MudTh Style="text-align: right;">Budget USD</MudTh>
+                <MudTh><MudIcon Icon="fas fa-info-circle" Size="Size.Small" /></MudTh>
+            </HeaderContent>
+            <RowTemplate Context="task">
+                @if (IsVisible(task))
+                {
+                    <MudTd Style="padding: 0 4px !important; text-align: center;">
+                        @if (task.Children?.Count > 0)
+                        {
+                            <MudIconButton Icon="@(task.IsExpanded? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)"
+                                           Size="Size.Small" Class="pa-0"
+                                           OnClick="() => ToggleExpand(task)" />
+                        }
+                    </MudTd>
+
+                    <MudTd>@task.IdNumber</MudTd>
+                    <MudTd>@task.WbsCode</MudTd>
+                    <MudTd Style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <MudTooltip Text="@task.Name" Placement="Placement.Top">
+                            <span style="cursor: help;">@task.Name</span>
+                        </MudTooltip>
+                    </MudTd>
+                    <MudTd>@(task.StartDate?.ToString("yyyy-MM-dd"))</MudTd>
+                    <MudTd>@(task.EndDate?.ToString("yyyy-MM-dd"))</MudTd>
+                    <MudTd>@task.Duration</MudTd>
+                    <MudTd>@task.SummaryDependencies</MudTd>
+
+                    @* Columna de Dinero con Clase CSS Específica *@
+                    <MudTd Style="text-align: right;">
+                        <span class="budget-text">
+                            @task.Appropiation.ToCurrencyCulture()
+                        </span>
+                    </MudTd>
+
+                    <MudTd Style="padding: 0 4px !important;">
+                        <div class="d-flex justify-center align-center gap-1">
+                            <MudTooltip Text="Budget Assignments">
+                                <MudIconButton Icon="@Icons.Material.Filled.AttachMoney"
+                                               Color="Color.Success"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OpenBudgetDialogFromRow(task))" />
+                            </MudTooltip>
+
+                            <MudTooltip Text="Communications">
+                                <MudIconButton Icon="fas fa-bullhorn"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               OnClick="@((e) => ManageCommunicationFromRow(task))" />
+                            </MudTooltip>
+                        </div>
+                    </MudTd>
+                }
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+
+@code {
+   
+}

@@ -1,0 +1,277 @@
+﻿@using Shared.Dtos.Projects
+@using Shared.Dtos.Starts.StakeHolderInsideProjectInsideProjects
+
+
+<MudStack Spacing="3">
+
+    <MudPaper Elevation="0" Class="pa-2 d-flex align-center gap-2" Outlined="true" Style="background-color: #FAFAFA;">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Color="Color.Default" Class="ml-2" />
+        <MudTextField T="string" ValueChanged="OnNameFilter" Value="@_nameFilter"
+                      Placeholder="Search Project Stakeholders..."
+                      Variant="Variant.Text"
+                      Adornment="Adornment.None"
+                      Class="flex-grow-1"
+                      Immediate="true"
+                      Margin="Margin.Dense" />
+
+        @if (!string.IsNullOrEmpty(_nameFilter))
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => OnNameFilter(string.Empty))" />
+        }
+    </MudPaper>
+
+    <TemplateCard2 TValue="StakeHolderInsideProjectDto"
+                   Title="Project Stakeholders"
+                   Items="FilteredItems"
+                   Model="Model"
+                   IsLoading="_loading"
+                   HasOrder="false"
+                   Edit="StartEdit"
+                   Delete="DeleteAsync"
+                   Submit="Submit"
+                   Cancel="Cancel"
+                   DisableAddEdit="DisableAddEdit">
+
+        <CustomHeaderButtons>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.PersonAdd"
+                       OnClick="StartCreate"
+                       Class="rounded-pill"
+                       Disabled="@DisableAddEdit">
+                Add Stakeholder
+            </MudButton>
+        </CustomHeaderButtons>
+
+        <FormContent Context="ctx">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <AutoCompleteIconButton @bind-Value="@ctx.Model.StakeHolderInsideProject"
+                                            TValue="StakeHolderDto"
+                                            Label="StakeHolder"
+                                            ValidateAsync="ctx.ValidateAsync"
+                                            For="()=>ctx.Model.StakeHolderInsideProject"
+                                            Clearable="true"
+                                            SearchFunc="SearchStakeHolder"
+                                            ToStringFunc="@(e=> e==null?null : $"{e.Name} ")"
+                                            Icon="@Icons.Material.Filled.Add"
+                                            ButtonClick="AddStakeHolder"
+                                            ToolTip="Add new Stakeholder"
+                                            Change="ChangeStakeHolder">
+
+                    </AutoCompleteIconButton>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <Select @bind-Value="ctx.Model.Role"
+                            TValue="StakeHolderRoleEnum"
+                            ValidateAsync="ctx.ValidateAsync"
+                            Label="Role"
+                            Items=StakeHolderRoleEnum.List
+                            For="@(() => ctx.Model.Role)">
+                    </Select>
+                </MudItem>
+            </MudGrid>
+        </FormContent>
+
+        <MainContent Context="item">
+            <div class="d-flex align-center w-100">
+                <MudAvatar Color="Color.Transparent" Size="Size.Medium" Class="mr-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Primary" />
+                </MudAvatar>
+
+                <div class="d-flex flex-column flex-grow-1">
+                    <div class="d-flex justify-space-between align-center">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@item.Name</MudText>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Size="Size.Small" Style="font-weight:700;">
+                            @item.Role.Name
+                        </MudChip>
+                    </div>
+
+                    <div class="d-flex align-center gap-2">
+                        <MudText Typo="Typo.caption" Color="Color.Default">@item.Area</MudText>
+                        @if (!string.IsNullOrEmpty(item.Email))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Default">|</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Default" Style="opacity:0.7;">@item.Email</MudText>
+                        }
+                    </div>
+                </div>
+            </div>
+        </MainContent>
+
+    </TemplateCard2>
+</MudStack>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public bool DisableAddEdit { get; set; }
+
+
+    // --- ESTADO ---
+    private List<StakeHolderInsideProjectDto> _items = new();
+    private List<StakeHolderDto> _globalStakeholders = new(); // Para el Autocomplete
+    private bool _loading = true;
+    private StakeHolderInsideProjectDto Model = null!;
+    private string _nameFilter = string.Empty;
+
+    // --- FILTRADO (Igual a Brand) ---
+    private List<StakeHolderInsideProjectDto> FilteredItems => string.IsNullOrEmpty(_nameFilter)
+        ? _items
+        : _items.Where(x =>
+            (x.Name?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.Area?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+            (x.Role.Name?.Contains(_nameFilter, StringComparison.InvariantCultureIgnoreCase) ?? false)
+          ).ToList();
+
+    private void OnNameFilter(string value) => _nameFilter = value;
+
+    // --- CARGA DE DATOS ---
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+        await LoadGlobalStakeholdersAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var result = await HttpService.PostAsync<GetAllStakeHolderInsideProjects, 
+        GeneralDto<List<StakeHolderInsideProjectDto>>>(new GetAllStakeHolderInsideProjects { ProjectId = ProjectId });
+        if (result.Succeeded)
+        {
+            _items = result.Data ?? new();
+        }
+        _loading = false;
+    }
+
+    private async Task LoadGlobalStakeholdersAsync()
+    {
+        // Cargamos la lista maestra para poder buscar en el Autocomplete
+        var result = await HttpService.PostAsync<GetAllStakeHolders, GeneralDto<List<StakeHolderDto>>>(new GetAllStakeHolders { ProjectId = Guid.Empty });
+        if (result.Succeeded)
+        {
+            _globalStakeholders = result.Data ?? new();
+        }
+    }
+
+   
+
+    // --- CRUD ---
+    private void StartCreate()
+    {
+        // Inicializamos con el tipo derivado Create
+        Model = new CreateStakeHolderInsideProject
+        {
+            Id = Guid.Empty,
+            ProjectId = ProjectId,
+            Role = StakeHolderRoleEnum.None
+        };
+    }
+
+    private async Task StartEdit(StakeHolderInsideProjectDto item)
+    {
+        // Fetch fresh data
+        var request = new GetStakeHolderInsideProjectById
+        {
+            ProjectId = ProjectId,
+            StakeHolderId = item.StakeHolderId,
+            Id = item.Id
+        };
+        var result = await HttpService.PostAsync<GetStakeHolderInsideProjectById, GeneralDto<EditStakeHolderInsideProject>>(request);
+
+        if (result.Succeeded && result.Data != null)
+        {
+            Model = result.Data;
+            // Aseguramos que el objeto StakeHolderInsideProject esté poblado para el Autocomplete
+            if (Model.StakeHolderInsideProject == null)
+            {
+                Model.StakeHolderInsideProject = _globalStakeholders.FirstOrDefault(x => x.Id == Model.StakeHolderId);
+            }
+        }
+    }
+
+    private void Cancel() => Model = null!;
+
+    private async Task Submit()
+    {
+        // Simulando el patrón Brand que envía 'Model' directo.
+        GeneralDto result = await HttpService.PostAsync<StakeHolderInsideProjectDto, GeneralDto>(Model);
+
+        if (result.Succeeded)
+        {
+            Model = null!;
+            await LoadDataAsync();
+            NotificationService.NotifyProjectsChanged();
+        }
+        
+    }
+
+    private async Task DeleteAsync(StakeHolderInsideProjectDto item)
+    {
+        var parameters = new DialogParameters<DialogTemplate>
+        {
+            { x => x.ContentText, $"Are you sure you want to remove {item.Name}?" },
+            { x => x.ButtonText, "Remove" },
+            { x => x.Color, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Removal", parameters, new DialogOptions { MaxWidth = MaxWidth.ExtraSmall });
+        var result = await dialog.Result;
+
+        if (!result!.Canceled)
+        {
+            var deleteReq = new DeleteStakeHolderInsideProject
+            {
+                ProjectId = ProjectId,
+                StakeHolderId = item.StakeHolderId
+            };
+
+            var deleteRes = await HttpService.PostAsync<DeleteStakeHolderInsideProject, GeneralDto>(deleteReq);
+
+            if (deleteRes.Succeeded)
+            {
+                await LoadDataAsync();
+                NotificationService.NotifyProjectsChanged();
+            }
+        }
+    }
+    private Task<IEnumerable<StakeHolderDto>> SearchStakeHolder(string value, CancellationToken token)
+    {
+        Func<StakeHolderDto, bool> Criteria = x =>
+        x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+        x.Area.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+        x.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase);
+        IEnumerable<StakeHolderDto> FilteredItems = string.IsNullOrEmpty(value) ? _globalStakeholders.AsEnumerable() :
+            _globalStakeholders.Where(Criteria);
+        return Task.FromResult(FilteredItems);
+    }
+    public async Task AddStakeHolder()
+    {
+        CreateStakeHolder dto = new();
+        var parameters = new DialogParameters<StakeHolderDialog>
+        {
+              { x => x.Model, dto},
+        };
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<StakeHolderDialog>("Add StakeHolder", parameters, options);
+        var result = await dialog.Result;
+        if (result != null)
+        {
+            await LoadGlobalStakeholdersAsync();
+
+        }
+    }
+    void ChangeStakeHolder()
+    {
+        if (Model.StakeHolderInsideProject != null)
+        {
+
+
+
+        }
+
+    }
+}

@@ -1,0 +1,140 @@
+﻿@using Shared.Dtos.Projects.Plannings.Gantts
+<div class="@($"wbs-node {GetNodeClass()}")" style="@($"--wbs-level: {Level}")">
+    <MudPaper Class="pa-2" Elevation="1" Square="true" Outlined="true" >
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                @if (Task.Children?.Count > 0)
+                {
+                    <IconButton Icon="@(Task.IsExpanded? Icons.Material.Filled.ArrowDropDown : Icons.Material.Filled.ArrowRight)" OnClick="ToggleExpand" Size="Size.Medium">
+
+                    </IconButton>
+                 
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Class="text-grey" />
+                }
+                <MudText Typo="Typo.body2" Class="wbs-task-name">@Truncate(Task.Name, 30)</MudText>
+               
+
+                <MudText Typo="Typo.caption" Color="Color.Info" Class="ml-2">
+                    @Task.StartDate?.ToString("yyyy-MM-dd") → @Task.EndDate?.ToString("yyyy-MM-dd")
+                </MudText>
+
+                @if (!string.IsNullOrEmpty(Task.SummaryDependencies))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Dark" Class="ml-2">
+                        [@Task.SummaryDependencies]
+                    </MudText>
+                }
+            </MudStack>
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <IconButton Icon="@Icons.Material.Filled.Add"
+                            Size="Size.Small"
+                            Color="Color.Primary"
+                            OnClick="() => Add(Task.Id)"
+                            ToolTip="Add subtask" />
+                <IconButton Icon="@Icons.Material.Filled.Edit"
+                            Size="Size.Small"
+                            Color="Color.Info"
+                            OnClick="() => Edit(Task)"
+                            ToolTip="Edit" />
+                <IconButton Icon="@Icons.Material.Filled.Delete"
+                            Size="Size.Small"
+                            Color="Color.Error"
+                            OnClick="() => Delete(Task)"
+                            ToolTip="Delete" />
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    @if (Task.IsExpanded && Task.Children?.Count > 0)
+    {
+        <div class="wbs-children">
+            @foreach (var child in Task.Children.OrderBy(t => t.Order))
+            {
+                <WbsNode Task="child"
+                         Level="Level + 1"
+                         OnEdit="OnEdit"
+                         OnAdd="OnAdd"
+                         OnDelete="OnDelete" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public GanttDto Task { get; set; } = new();
+    [Parameter] public int Level { get; set; }
+    [Parameter] public EventCallback<Guid?> OnAdd { get; set; }
+    [Parameter] public EventCallback<GanttDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<GanttDto> OnDelete { get; set; }
+    async Task Add(Guid Id)
+
+    {
+        if (OnAdd.HasDelegate) await OnAdd.InvokeAsync(Id);
+    }
+    async Task Edit(GanttDto task)
+    {
+        if (OnEdit.HasDelegate) await OnEdit.InvokeAsync(task);
+
+    }
+    async Task Delete(GanttDto task)
+    {
+        if (OnDelete.HasDelegate) await OnDelete.InvokeAsync(task);
+
+    }
+    private void ToggleExpand() => Task.IsExpanded = !Task.IsExpanded;
+
+    string NodeClass => GetNodeClass();
+
+    private string GetNodeClass() =>
+        Task.Children?.Count > 0 ? "wbs-node wbs-parent" : "wbs-node wbs-leaf";
+
+    private string Truncate(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Length <= maxLength
+            ? text
+            : text[..(maxLength - 3)] + "...";
+    }
+}
+
+<style>
+    .wbs-node {
+        margin-top: 8px;
+    }
+
+        .wbs-node:first-child {
+            margin-top: 0;
+        }
+
+    .wbs-node {
+        margin-left: calc(var(--wbs-level, 0) * 24px);
+    }
+
+    .wbs-children {
+        margin-left: 0;
+    }
+
+    .wbs-task-name {
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .wbs-parent .mud-paper {
+        background-color: #f8fbff;
+        border-left: 3px solid #1976d2;
+    }
+
+    .wbs-leaf .mud-paper {
+        background-color: #ffffff;
+    }
+
+    .mud-icon-button {
+        padding: 4px !important;
+    }
+</style>

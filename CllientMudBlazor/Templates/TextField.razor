@@ -1,17 +1,19 @@
-﻿
-<MudTextField Value="@Value"
-              ValueChanged="OnValueChanged"
+﻿@using System.Linq.Expressions
+@implements IDisposable
+
+<MudTextField Value="@_internalValue"
+              ValueChanged="HandleInternalChanged"
               T="string"
               Lines="@Lines"
               Label="@Label"
               AdornmentIcon="@AdornmentIcon"
               Adornment="@Adornment"
-              AutoGrow=@Autogrow
+              AutoGrow="@Autogrow"
               IconSize="@IconSize"
               Placeholder="@PlaceHolder"
               Variant="Variant.Outlined"
-              Immediate=@Immediate
-              Margin=Margin.Dense
+              Immediate="@Immediate"
+              Margin="Margin.Dense"
               InputType="@InputType"
               Style="padding:2px"
               Class="@Class"
@@ -20,82 +22,84 @@
 </MudTextField>
 
 @code {
-   
-    [Parameter]
-    public bool Disabled { get; set; } = false;
-    [Parameter]
-    public bool Immediate { get; set; } = true;
-    [Parameter]
-    public string Class { get; set; } = string.Empty;
-    [Parameter]
-    public Size IconSize { get; set; } = Size.Medium;
-    [Parameter]
-    public string? AdornmentIcon { get; set; }
-    [Parameter]
-    public Adornment Adornment { get; set; } = Adornment.None;
-    [Parameter]
-    public InputType InputType { get; set; } = InputType.Text;
-    [Parameter]
-    public int Lines { get; set; } = 1;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public EventCallback ValidateAsync { get; set; }
+    [Parameter] public EventCallback Change { get; set; }
+
+    // Otros parámetros (se mantienen igual)
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool Immediate { get; set; } = true;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public Size IconSize { get; set; } = Size.Medium;
+    [Parameter] public string? AdornmentIcon { get; set; }
+    [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    [Parameter] public InputType InputType { get; set; } = InputType.Text;
+    [Parameter] public int Lines { get; set; } = 1;
     bool Autogrow => Lines > 1;
-    [Parameter]
-    public string PlaceHolder { get; set; } = string.Empty;
-    [Parameter]
-    public string Label { get; set; } = string.Empty;
-    [Parameter]
-    public string Value { get; set; } = string.Empty;
-    [Parameter]
-    public EventCallback<string> ValueChanged { get; set; }
-    [Parameter]
-    public EventCallback ValidateAsync { get; set; }
-    [Parameter]
-    public EventCallback Change { get; set; }
-    [Parameter]
-    public Expression<Func<string>>? For { get; set; }
+    [Parameter] public string PlaceHolder { get; set; } = string.Empty;
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public Expression<Func<string>>? For { get; set; }
+
+    private string _internalValue = string.Empty;
     private CancellationTokenSource? _debounceCts;
-    private const int DebounceDelay = 500; // 500ms
+    private const int DebounceDelay = 1000;
 
-    async Task OnValueChanged(string value)
+    // Sincronizar cuando el padre cambia el valor (ej. al cargar un proyecto)
+    protected override void OnParametersSet()
     {
-        Value = value;
-
-        if (ValueChanged.HasDelegate)
-            await ValueChanged.InvokeAsync(Value);
-        if (Change.HasDelegate)
-            await Change.InvokeAsync();
-
-        // ✅ Cancelar validación anterior
-        _debounceCts?.Cancel();
-
-        // ✅ Solo validar si hay valor y hay delegado
-        if (ValidateAsync.HasDelegate && !string.IsNullOrWhiteSpace(value))
+        if (_internalValue != Value)
         {
-            _debounceCts = new CancellationTokenSource();
-            var token = _debounceCts.Token;
-
-            try
-            {
-                // ✅ Esperar la pausa SIN bloquear la UI
-                await Task.Delay(DebounceDelay, token);
-
-                // ✅ Ejecutar validación en el contexto de Blazor
-                if (!token.IsCancellationRequested && ValidateAsync.HasDelegate)
-                {
-                    await ValidateAsync.InvokeAsync();
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // ✅ Cancelación esperada → ignorar
-            }
-            catch (Exception ex)
-            {
-                // ✅ Log opcional
-                 Console.WriteLine($"Debounce error: {ex.Message}");
-            }
+            _internalValue = Value;
         }
     }
 
-    public void Dispose() => _debounceCts?.Cancel();
+    private async Task HandleInternalChanged(string newValue)
+    {
+        // 1. Actualización local inmediata (esto evita que se pierdan letras)
+        _internalValue = newValue;
 
+        // 2. Notificar al padre para que el 'Save' tenga el dato real
+        if (ValueChanged.HasDelegate)
+        {
+            Value = newValue; // Actualizamos el parámetro localmente antes del invoke
+            await ValueChanged.InvokeAsync(newValue);
+        }
+
+        // 3. Ejecutar evento Change
+        if (Change.HasDelegate)
+            await Change.InvokeAsync();
+
+        // 4. Lógica de Debounce para Validación
+        await ExecuteDebounceValidation(newValue);
+    }
+
+    private async Task ExecuteDebounceValidation(string value)
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(DebounceDelay, token);
+
+            if (!token.IsCancellationRequested && ValidateAsync.HasDelegate && !string.IsNullOrWhiteSpace(value))
+            {
+                await ValidateAsync.InvokeAsync();
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Debounce error: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+    }
 }

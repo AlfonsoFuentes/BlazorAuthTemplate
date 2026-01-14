@@ -1,0 +1,344 @@
+﻿<TemplateCard2 TValue="RiskMatrixDto"
+               Title="@Title"
+               Items="@_items"
+               Model="@Model"
+               IsLoading="_loading"
+               Create="StartCreate"
+               Edit="StartEdit"
+               Delete="DeleteAsync"
+               Submit="Submit"
+               Cancel="Cancel"
+               GoUp="OrderUp"
+            
+               DisableAddEdit=@DisableAddEdit
+               GoDown="OrderDown">
+
+    <FormContent Context="ctx">
+        <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-2" @bind-ActivePanelIndex="_activeTabIndex">
+
+            <MudTabPanel Text="Definition" Icon="@Icons.Material.Filled.Description">
+                <MudGrid Class="mt-2">
+
+                    <MudItem xs="12">
+                        <TextField @bind-Value="@ctx.Model.Title"
+                                   Label="Risk Title (Short Name)"
+                                   ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.Title)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Primary" Class="mb-1">Statement Preview:</MudText>
+                        <MudPaper Class="pa-3" Outlined="true" Style="background-color: #f5f5f5; font-style: italic;">
+                            <MudText Typo="Typo.body2">
+                                "Because of <b>@(string.IsNullOrWhiteSpace(ctx.Model.Cause) ? "..." : ctx.Model.Cause)</b>,
+                                <b>@(string.IsNullOrWhiteSpace(ctx.Model.RiskEvent) ? "..." : ctx.Model.RiskEvent)</b> might occur,
+                                causing <b>@(string.IsNullOrWhiteSpace(ctx.Model.Effect) ? "..." : ctx.Model.Effect)</b>."
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <TextField @bind-Value="@ctx.Model.Cause" Label="Cause" Placeholder="e.g. Concrete supplier strike" Lines="2" ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.Cause)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <TextField @bind-Value="@ctx.Model.RiskEvent" Label="Risk Event" Placeholder="e.g. Foundation pouring delay" Lines="2" ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.RiskEvent)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <TextField @bind-Value="@ctx.Model.Effect" Label="Effect" Placeholder="e.g. 2 weeks delay on critical path" Lines="2" ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.Effect)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <TextField @bind-Value="@ctx.Model.Responsible" Label="Responsible" ValidateAsync="@ctx.ValidateAsync"
+                                   For="@(() => ctx.Model.Responsible)" />
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+
+            <MudTabPanel Text="Analysis" Icon="@Icons.Material.Filled.Analytics">
+                <MudGrid Class="mt-2">
+
+                    <MudItem xs="12">
+                        @{
+                            int prob = (int)ctx.Model.Probability;
+                            int imp = (int)ctx.Model.Impact;
+                            int score = prob * imp;
+
+                            // Lógica de colores y estilos
+                            string bgClass = "mud-paper-outlined"; // Por defecto borde gris
+                            string textStyle = "color: var(--mud-palette-text-primary);"; // Texto negro por defecto
+                            string sevText = "Pending";
+
+                            if (score >= 15)
+                            {
+                                bgClass = "mud-theme-error";
+                                textStyle = "color: white;";
+                                sevText = "HIGH";
+                            }
+                            else if (score >= 6)
+                            {
+                                bgClass = "mud-theme-warning";
+                                textStyle = "color: white;";
+                                sevText = "MEDIUM";
+                            }
+                            else if (score > 0)
+                            {
+                                bgClass = "mud-theme-success";
+                                textStyle = "color: white;";
+                                sevText = "LOW";
+                            }
+                        }
+                        <MudPaper Class="@($"pa-3 {bgClass} d-flex justify-space-between align-center")" Elevation="0">
+                            <MudText Typo="Typo.h6" Style="@textStyle"><b>Score: @score</b> (@prob x @imp)</MudText>
+                            <MudText Style="@textStyle">Severity: <b>@sevText</b></MudText>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudSelect T="RiskProbability" Label="Probability" Dense="true" @bind-Value="@ctx.Model.Probability" For="@(() => ctx.Model.Probability)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (RiskProbability item in Enum.GetValues(typeof(RiskProbability)))
+                            {
+                                if (item != RiskProbability.None)
+                                {
+                                    var colorStyle = ((int)item) >= 4 ? "color:var(--mud-palette-error);" : ((int)item) == 3 ? "color:var(--mud-palette-warning-darken);" : "color:var(--mud-palette-success-darken);";
+                                    <MudSelectItem Value="@item"><span style="@colorStyle font-weight:bold;">@item.GetDescription()</span></MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudSelect T="RiskImpact" Label="Impact" Dense="true" @bind-Value="@ctx.Model.Impact" Variant="Variant.Outlined" For="@(() => ctx.Model.Impact)" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (RiskImpact item in Enum.GetValues(typeof(RiskImpact)))
+                            {
+                                if (item != RiskImpact.None)
+                                {
+                                    var colorStyle = ((int)item) >= 4 ? "color:var(--mud-palette-error);" : ((int)item) == 3 ? "color:var(--mud-palette-warning-darken);" : "color:var(--mud-palette-success-darken);";
+                                    <MudSelectItem Value="@item"><span style="@colorStyle font-weight:bold;">@item.GetDescription()</span></MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudSelect T="RiskStrategyType" Label="Response Strategy" Dense="true" For="@(() => ctx.Model.StrategyType)" @bind-Value="@ctx.Model.StrategyType" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (RiskStrategyType item in Enum.GetValues(typeof(RiskStrategyType)))
+                            {
+                                <MudSelectItem Value="@item">@item.GetDescription()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <TextField @bind-Value="@ctx.Model.Trigger" Label="Trigger Condition" />
+                    </MudItem>
+
+                   
+                    <MudItem xs="12">
+                        <MudDivider Class="my-4" />
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Response Action Plan (Steps)</MudText>
+
+                        <MudGrid Class="mb-4 pa-2" Style="background-color: var(--mud-palette-background-grey); border-radius: 8px;">
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="_currentAction.Description" Label="Action Description" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            </MudItem>
+                            <MudItem xs="6" sm="6">
+                                <MudTextField @bind-Value="_currentAction.AssignedTo" Label="Assigned To" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            </MudItem>
+                            <MudItem xs="6" sm="3">
+                                <MudSelect @bind-Value="_currentAction.ActionType" Label="Type" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                                    <MudSelectItem Value="@RiskActionType.Mitigation">Mitigation (Preventive)</MudSelectItem>
+                                    <MudSelectItem Value="@RiskActionType.Contingency">Contingency (Reactive)</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+
+                            @if (_currentAction.ActionType == RiskActionType.Mitigation)
+                            {
+                                <MudItem xs="6" sm="3">
+                                    <MudDatePicker @bind-Date="_currentAction.DueDate" Label="Due Date" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                </MudItem>
+                            }
+                            else
+                            {
+                                <MudItem xs="6" sm="3" Class="d-flex align-center">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Trigger Dependent</MudText>
+                                </MudItem>
+                            }
+                            <MudItem xs="3" Class="d-flex justify-end align-center gap-2">
+                                @if (_isEditingAction)
+                                {
+                                    <IconButton ToolTip="Cancel" Icon="@Icons.Material.Filled.Cancel" Color="Color.Secondary" OnClick="PrepareNewAction" Size="Size.Small"></IconButton>
+                                }
+                                <IconButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAction" Icon="@Icons.Material.Filled.Save" ToolTip="@(_isEditingAction ? "Update Step" : "Add Step")">
+
+                                </IconButton>
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudTable Items="_actionsList" Hover="true" Dense="true" Elevation="0" Striped="true" Bordered="true">
+                            <HeaderContent>
+                                <MudTh>#</MudTh>
+                                <MudTh>Action</MudTh>
+                                <MudTh>Owner</MudTh>
+                                <MudTh>Due Date</MudTh>
+                                <MudTh>Type</MudTh>
+                                <MudTh>Status</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="#">@context.Order</MudTd>
+                                <MudTd DataLabel="Action">@context.Description</MudTd>
+                                <MudTd DataLabel="Owner">@context.AssignedTo</MudTd>
+                                <MudTd DataLabel="Due Date">
+                                    @if (context.ActionType == RiskActionType.Mitigation)
+                                    {
+                                        @context.DueDate?.ToShortDateString()
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--mud-palette-text-secondary); font-style:italic;">On Trigger</span>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Type">
+                                    <MudChip T="string" Color="@(context.ActionType == RiskActionType.Mitigation ? Color.Success : Color.Warning)" Size="Size.Small" Variant="Variant.Text">
+                                        @context.ActionType
+                                    </MudChip>
+                                </MudTd>
+
+                                <MudTd>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => PrepareEditAction(context))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteAction(context))" />
+                                </MudTd>
+                            </RowTemplate>
+                            <NoRecordsContent>
+                                <MudText Typo="Typo.caption" Class="pa-4">No action steps defined yet.</MudText>
+                            </NoRecordsContent>
+                        </MudTable>
+                    </MudItem>
+                </MudGrid>
+
+            </MudTabPanel>
+
+            <MudTabPanel Text="Comments" Icon="@Icons.Material.Filled.Comment">
+                <MudGrid Class="mt-2">
+                    <MudItem xs="4">
+                        <TextField @bind-Value="@_newCommentAuthor" Label="Author" Placeholder="Name..." />
+                    </MudItem>
+                    <MudItem xs="8">
+                        <div class="d-flex gap-2">
+                            <TextField @bind-Value="@_newComment" Label="New Comment" />
+                            <IconButton Icon="@Icons.Material.Filled.Send" Color="Color.Primary" OnClick="AddComment" Disabled="@(string.IsNullOrWhiteSpace(_newComment) || string.IsNullOrWhiteSpace(_newCommentAuthor))" />
+                        </div>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudList T="string" Dense="true" Style="max-height: 250px; overflow-y: auto;">
+                            @if (_comments.Any())
+                            {
+                                @foreach (var c in _comments.OrderByDescending(x => x.CommentDate))
+                                {
+                                    <MudListItem>
+                                        @if (_editingCommentId == c.Id)
+                                        {
+                                            <div class="d-flex gap-2 align-center w-100">
+                                                <TextField @bind-Value="_tempCommentAuthor" Label="Author" />
+                                                <TextField @bind-Value="_tempCommentValue" Label="Comment" />
+
+                                                <IconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" OnClick="@(() => SaveEditComment(c))" Size="Size.Small" />
+                                                <IconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" OnClick="CancelEditComment" Size="Size.Small" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex justify-space-between align-start w-100">
+                                                <div class="d-flex flex-column" style="width: 85%;">
+                                                    <MudText Typo="Typo.body2"><b>@c.CommentedBy</b></MudText>
+                                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                                        <MudText Typo="Typo.body2">@c.Comment</MudText>
+                                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                            @(c.CommentDate == default ? "New" : c.CommentDate.ToLocalTime().ToString("g"))
+                                                        </MudText>
+                                                    </MudStack>
+
+                                                </div>
+                                                <div class="d-flex">
+                                                    <IconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Default" Size="Size.Small" OnClick="@(() => StartEditComment(c))" />
+                                                    <IconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteComment(c))" />
+                                                </div>
+                                            </div>
+                                            <MudDivider />
+                                        }
+                                    </MudListItem>
+                                }
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Class="pa-2">No comments yet.</MudText>
+                            }
+                        </MudList>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+
+        </MudTabs>
+    </FormContent>
+
+    <MainContent Context="item">
+        <MudText Typo="Typo.subtitle1" Class="mb-1"><b>@item.Title</b></MudText>
+
+        <MudAlert Severity="Severity.Info" Variant="Variant.Text" NoIcon="true" Class="py-1 my-2">
+            <MudText Typo="Typo.caption" Style="font-style:italic">
+                "Because of <b>@item.Cause</b>, <b>@item.RiskEvent</b> might occur, causing <b>@item.Effect</b>."
+            </MudText>
+        </MudAlert>
+
+        <div class="d-flex gap-2 my-2">
+            <MudTooltip Text="Response Strategy">
+                <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.Lightbulb">
+                    @item.StrategyType.ToString()
+                </MudChip>
+            </MudTooltip>
+
+            <MudTooltip Text="Responsible">
+                <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Default">
+                    @item.Responsible
+                </MudChip>
+            </MudTooltip>
+        </div>
+
+        @if (item.LinkedInvestments != null && item.LinkedInvestments.Any())
+        {
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary"><b>Mitigation Costs:</b></MudText>
+
+             <div class="d-flex flex-wrap gap-1 mt-1">
+                @foreach (var inv in item.LinkedInvestments)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
+                        <b>@inv.Category.GetDescription():</b> @inv.BudgetUSD.ToCurrencyCulture())
+                    </MudChip>
+                }
+            </div> 
+            <MudText Typo="Typo.caption" Class="d-block mt-1 text-end">
+                Total: <b>@item.LinkedInvestments.Sum(x => x.BudgetUSD).ToCurrencyCulture())</b>
+            </MudText>
+        }
+
+    </MainContent>
+
+</TemplateCard2>
+
+
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+    private int _activeTabIndex = 0;
+}

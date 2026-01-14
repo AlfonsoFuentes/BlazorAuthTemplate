@@ -1,0 +1,142 @@
+﻿
+@* WBSCardNodeV2.razor *@
+<div id="@($"task-{Task.IdNumber}")" class="@($"wbs-node {GetNodeClass()}")" style="@($"--wbs-level: {Level}")">
+    <MudCard Outlined="true" Square="true" Elevation="@(isEditing ? 4 : 1)"
+             Style="max-width: 550px; width: 100%;"
+             Class="@($"wbs-card-compact {(isEditing||isCreating ? "border-2 mud-border-primary" : "")}")">
+        
+        <MudCardHeader Class="pa-2">
+        
+            <CardHeaderContent>
+                <MudStack Spacing="1" Row="true" AlignItems="AlignItems.Center">
+                    @if (isCreating)
+                    {
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Text" Class="pa-0 ma-0">NEW</MudChip>
+                        <MudText Typo="Typo.caption" Style="font-weight: 700;">ID @Task.IdNumber</MudText>
+                        <MudDivider Vertical="true" FlexItem="true" Style="height:12px;" />
+                        <MudText Typo="Typo.caption">WBS @Task.WbsCode</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Style="font-weight: 700;">ID @Task.IdNumber</MudText>
+                        <MudDivider Vertical="true" FlexItem="true" Style="height:12px;" />
+                        <MudText Typo="Typo.caption">WBS @Task.WbsCode</MudText>
+                    }
+                </MudStack>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                @if (Task.Children?.Any() == true)
+                {
+                    <IconButton Icon="@(Task.IsExpanded ? Icons.Material.Filled.ArrowDropDown : Icons.Material.Filled.ArrowRight)"
+                                OnClick="ToggleExpand" Size="Size.Small" />
+                }
+            </CardHeaderActions>
+        </MudCardHeader>
+
+        <MudCardContent Class="pt-0">
+            @if (isEditing)
+            {
+                <WBSCardEditor Model="@editModel"
+                               AllTasks="AllTasks"
+                               OnCancel="Cancel"
+                               OnSave="HandleValidSubmit" />
+                
+            }
+            else if (isCreating)
+            {
+                <WBSCardEditor Model="createModel"
+                               AllTasks="AllTasks"
+                               OnCancel="Cancel"
+                               OnSave="HandleValidSubmit" />
+            }
+            else
+            {
+                <WBSCardDisplay Task="Task" />
+            }
+        </MudCardContent>
+
+        @if (!isEditing && !isCreating)
+        {
+            <MudCardActions Class="py-1 px-2">
+
+                <IconButton Icon="@Icons.Material.Filled.Add" OnClick="() => Add(Task.Id)" Color="Color.Primary" ToolTip="Add Child" />
+                <IconButton Icon="@Icons.Material.Outlined.Edit" OnClick="EnableEdit" Color="Color.Info" ToolTip="Edit" />
+                <IconButton Icon="@Icons.Material.Outlined.ArrowUpward" OnClick="() => MoveUp(Task)" Disabled="@(!WbsActions.CanMoveUp(Task, AllTasks))" />
+                <IconButton Icon="@Icons.Material.Outlined.ArrowDownward" OnClick="() => MoveDown(Task)" Disabled="@(!WbsActions.CanMoveDown(Task, AllTasks))" />
+                <IconButton Icon="@Icons.Material.Outlined.FormatIndentIncrease" OnClick="() => IndentRight(Task)" Disabled="@(!WbsActions.CanIndentRight(Task, AllTasks))" />
+                <IconButton Icon="@Icons.Material.Outlined.FormatIndentDecrease" OnClick="() => IndentLeft(Task)" Disabled="@(!WbsActions.CanIndentLeft(Task))" />
+                <IconButton Icon="@Icons.Material.Outlined.DeleteForever" OnClick="() => Delete(Task)" Color="Color.Warning" ToolTip="Delete" />
+                @* Ubicación: MudCardActions dentro de WBSCardNodeV2.razor *@
+                <IconButton Icon="@Icons.Material.Filled.AttachMoney"
+                            OnClick="OpenBudgetDialog"
+                            Color="@(Task.Appropiation > 0 ? Color.Success : Color.Default)"
+                            ToolTip="Manage Budget" />
+                <IconButton Icon="fas fa-bullhorn"
+                            OnClick="ManageCommunication"
+                            Color="@(HasCommunications ? Color.Primary : Color.Default)"
+                            ToolTip="@(HasCommunications ? "Manage Communications" : "Add Communication Plan")" />
+            </MudCardActions>
+        }
+    </MudCard>
+
+    @if (Task.IsExpanded && Task.Children?.Any() == true)
+    {
+        <div class="wbs-children">
+            @foreach (var child in Task.Children.OrderBy(t => t.Order))
+            {
+                <WBSCardNodeV2 Task="child" Level="Level + 1" AllTasks="AllTasks" GetAll="GetAll"
+                              OnAdd="OnAdd" OnDelete="OnDelete"
+                               OnMoveUp="OnMoveUp" OnMoveDown="OnMoveDown" 
+                               OnIndentLeft="OnIndentLeft" OnIndentRight="OnIndentRight" />
+            }
+        </div>
+    }
+</div>
+<style>
+
+    .wbs-node {
+        margin-top: 8px;
+        margin-left: calc(var(--wbs-level, 0) * 24px);
+    }
+
+        .wbs-node:first-child {
+            margin-top: 0;
+        }
+
+    .wbs-children {
+        margin-left: 0;
+    }
+
+    .wbs-task-name {
+        word-break: break-word;
+        hyphens: auto;
+        line-height: 1.4;
+        font-weight: 400;
+    }
+
+    /* Edit Mode Visuals */
+    .border-2 {
+        border-width: 2px !important;
+    }
+
+    .wbs-card-compact .mud-card-header {
+        min-height: 40px !important;
+        padding: 8px 16px !important;
+    }
+
+    .wbs-card-compact .mud-card-content {
+        padding: 8px 16px !important;
+    }
+
+    .wbs-card-compact .mud-card-actions {
+        padding: 4px 8px !important;
+        min-height: 36px !important;
+    }
+
+    .text-error-strikethrough {
+        text-decoration: line-through;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+
+</style>

@@ -1,0 +1,114 @@
+﻿@typeparam TValue where TValue : IModelDto
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+
+    <div class="d-flex align-center mb-4">
+        <MudText Typo="Typo.h6" Color="Color.Primary"><b>@Title</b></MudText>
+        <MudSpacer />
+        @if (CustomHeaderButtons != null)
+        {
+            @CustomHeaderButtons
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@DisableAddEdit" OnClick="Create">Add New Item</MudButton>
+        }
+    </div>
+
+    @if (IsCreating)
+    {
+        <MudPaper Class="pa-4 mb-4 border-dashed border-2 border-primary" Elevation="0">
+            <TemplateDialog TValue="TValue" Model="@Model" OnSubmit="Submit" OnCancel="Cancel">
+                <Content Context="ctx"> @FormContent(ctx) </Content>
+            </TemplateDialog>
+        </MudPaper>
+    }
+
+    @if (!IsLoading && Items != null)
+    {
+        <MudStack Spacing="2">
+            @{
+                // Variable para rastrear el cambio de grupo
+                object? lastGroupKey = null;
+            }
+
+            @foreach (var item in Items)
+            {
+                // 🔥 LÓGICA DE AGRUPACIÓN VISUAL
+                // Si el padre definió una función de agrupación y el valor cambió, pintamos el encabezado
+                if (GroupBy != null && GroupHeader != null)
+                {
+                    var currentGroupKey = GroupBy(item);
+                    if (!object.Equals(currentGroupKey, lastGroupKey))
+                    {
+                        @GroupHeader(item)
+                        lastGroupKey = currentGroupKey;
+                    }
+                }
+
+                // MODO EDICIÓN
+                if (Model != null && Model.Id == item.Id && item.Id != Guid.Empty && item.IsEditable)
+                {
+                    <MudPaper Class="pa-4 border-l-4 border-warning" Elevation="4">
+                        <TemplateDialog TValue="TValue" Model="@Model" OnSubmit="Submit" OnCancel="Cancel">
+                            <Content Context="ctx"> @FormContent(ctx) </Content>
+                        </TemplateDialog>
+                    </MudPaper>
+                }
+                // MODO LECTURA
+                else
+                {
+                    <MudPaper Class="pa-3 d-flex align-center hover-elevation" Elevation="1">
+
+                        @if (HasOrder)
+                        {
+                            <div class="d-flex flex-column align-center mr-3">
+                                <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowUp"
+                                               Size="Size.Small"
+                                               Disabled="@(AllowUp != null ? !AllowUp(item) : item.Order <= 1)"
+                                               OnClick="@(() => GoUp.InvokeAsync(item))"
+                                               Class="pa-0" />
+                                <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="flex-shrink-0">
+                                    @if (OrderDisplaySelector != null)
+                                    {
+                                        // Mostramos lo que diga la función (ej: "H1")
+                                        @OrderDisplaySelector(item)
+                                    }
+                                    else
+                                    {
+                                        // Default: #1
+                                        @($"#{item.Order}")
+                                    }
+                                </MudChip>
+                              
+
+                                <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown"
+                                               Size="Size.Small"
+                                               Disabled="@(AllowDown != null ? !AllowDown(item) : false)"
+                                               OnClick="@(() => GoDown.InvokeAsync(item))"
+                                               Class="pa-0" />
+                            </div>
+                        }
+
+                        <div class="flex-grow-1 border-l-2 pl-3 ml-1">
+                            @if (MainContent != null)
+                            {
+                                @MainContent(item)
+                            }
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <MudButton Variant="Variant.Text" Disabled="@(DisableAddEdit || !item.IsEditable)" Size="Size.Small" Color="Color.Primary" OnClick="@(() => Edit.InvokeAsync(item))">Edit</MudButton>
+                            <MudButton Variant="Variant.Text" Disabled="@(DisableAddEdit || !item.IsEditable)" Size="Size.Small" Color="Color.Error" OnClick="@(() => Delete.InvokeAsync(item))">Delete</MudButton>
+                        </div>
+                    </MudPaper>
+                }
+            }
+        </MudStack>
+    }
+</MudContainer>
+
+@code {
+    // Parámetros estándar
+
+}

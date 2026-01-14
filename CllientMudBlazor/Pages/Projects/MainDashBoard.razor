@@ -1,0 +1,214 @@
+﻿@page "/projectDashboard/{Id:guid}"
+@using Shared.Dtos.Projects
+@using Shared.Enums
+@using System.Threading
+@implements IDisposable
+
+@if (loading)
+{
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-10">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudText>Loading Project Context...</MudText>
+    </MudStack>
+}
+else if (_selectedProject != null)
+{
+    <MudStack Spacing="3">
+
+        <MudPaper Elevation="1" Class="pa-4">
+            <div class="d-flex align-center">
+                <MudAvatar Size="Size.Large"
+                           Style="@ProjectPhaseHelper.GetBackgroundColorStyle(_selectedProject.Status)"
+                           Class="mr-4 elevation-4">
+                    <MudIcon Icon="@ProjectPhaseHelper.GetIcon(_selectedProject.Status)" Size="Size.Medium" />
+                </MudAvatar>
+
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;">@_selectedProject.Name</MudText>
+                    <div class="d-flex align-center flex-wrap gap-2 mt-1">
+                        <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small"
+                                 Color="@ProjectPhaseHelper.GetMudColor(_selectedProject.Status)"
+                                 Class="ma-0" Style="font-weight:bold;">
+                            @_selectedProject.Status.Name.ToUpper()
+                        </MudChip>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_selectedProject.ProjectCode</MudText>
+                    </div>
+                </div>
+            </div>
+        </MudPaper>
+
+        <div class="mb-1">
+            @switch (SelectedPhase)
+            {
+                case 1: // START
+                        <StartMetrics ProjectId="@Id" />
+                    break;
+                case 2: // PLANNING
+                        <MudAlert Severity="Severity.Info" NoIcon="true">Planning Metrics Placeholder</MudAlert>
+                    break;
+                    // ...
+            }
+        </div>
+
+        <MudPaper Elevation="1" Class="pa-4">
+
+            <MudStack Row="true" AlignItems="AlignItems.Stretch" Justify="Justify.SpaceBetween" Class="mb-4 overflow-x-auto">
+
+                <MudButton Variant="@(SelectedPhase == 1 ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary" Disabled="@DisableStart"
+                           OnClick="() => SelectPhase(1)" StartIcon="@Icons.Material.Filled.Flag">Start</MudButton>
+
+                <MudButton Variant="@(SelectedPhase == 2 ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary"
+                           OnClick="() => SelectPhase(2)" StartIcon="@Icons.Material.Filled.Description">Planning</MudButton>
+
+                <MudButton Variant="@(SelectedPhase == 3 ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary" Disabled="@DisableExecution"
+                           OnClick="() => SelectPhase(3)" StartIcon="@Icons.Material.Filled.Build">Execution</MudButton>
+
+                <MudButton Variant="@(SelectedPhase == 4 ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary"
+                           Disabled="@DisableMonitoring"
+                           OnClick="() => SelectPhase(4)"
+                           StartIcon="@Icons.Material.Filled.MonitorHeart">
+                    Monitoring
+                </MudButton>
+
+                <MudButton Variant="@(SelectedPhase == 5 ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary"
+                           Disabled="@DisableClosing"
+                           OnClick="() => SelectPhase(5)"
+                           StartIcon="@Icons.Material.Filled.DoneAll">
+                    Closing
+                </MudButton>
+
+
+            </MudStack>
+
+
+            @if (SelectedPhase > 0)
+            {
+                <div class="animate-fade-in">
+                    @switch (SelectedPhase)
+                    {
+                        case 1:
+                            <StartDashBoard @key="Id" ProjectId="_selectedProject.Id" DisableButtonsAddEdit="DisableButtonsStart" />
+                            break;
+                        case 2:
+                            <DashboardPlanning @key="Id" ProjectId="_selectedProject.Id" DisableButtonsAddEdit="DisableButtonsPlanning" />
+                            break;
+                        case 3:
+                            <DashboardExecution />
+                            break;
+                            // ...
+                    }
+                </div>
+            }
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    // Estado Local
+    private ProjectDashboardDto _selectedProject = new();
+    private bool loading = true;
+    private int SelectedPhase { get; set; } = 0;
+    private CancellationTokenSource? _debounceCts;
+    protected override void OnInitialized()
+    {
+        // Suscribir solo UNA VEZ en la vida del componente
+        NotificationService.OnProjectsChanged += GetProjectDashBoard;
+    }
+    // --- CICLO DE VIDA ---
+    protected override async Task OnParametersSetAsync()
+    {
+        // Suscribirse a cambios si vienes de otro componente o URL cambia
+      
+        await GetProjectDashBoard();
+    }
+
+    // ✅ CORRECTO: Devolvemos 'Task' para cumplir con el contrato del evento
+
+
+    // --- CARGA DE DATOS ---
+    async Task GetProjectDashBoard()
+    {
+        if (_selectedProject == null || _selectedProject?.Id != Id)
+        {
+            loading = true;
+        }
+        // Llamada ligera: Solo info básica y LastVisitedPhase
+        var result = await HttpService.PostAsync<GetProjectDashBoardById, GeneralDto<ProjectDashboardDto>>(new GetProjectDashBoardById { Id = Id });
+
+        if (result.Succeeded)
+        {
+            _selectedProject = result.Data;
+
+            // Lógica de "Memoria de Elefante" 🐘
+            // Si viene 0, ponemos 1. Si viene dato, usamos ese.
+
+            // Solo resetear la fase si es una entrada nueva
+            if (SelectedPhase == 0)
+            {
+                SelectedPhase = _selectedProject.LastVisitedPhase > 0 ? _selectedProject.LastVisitedPhase : 1;
+            }
+
+
+        }
+        loading = false;
+        StateHasChanged();
+    }
+
+    // --- LÓGICA DE SELECCIÓN CON DEBOUNCE (Backend Save) ---
+    private async Task SelectPhase(int phase)
+    {
+        // 1. Feedback visual inmediato
+        SelectedPhase = phase;
+
+        // 2. Cancelar timer anterior
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            // 3. Esperar 2 segundos
+            await Task.Delay(2000, token);
+
+            // 4. Guardar en BD si no se canceló
+            if (!token.IsCancellationRequested)
+            {
+                var updateDto = new UpdateProjectLastPhaseDto { ProjectId = Id, PhaseId = phase };
+                // Fire and forget (sin await bloqueante en UI, pero seguro)
+                await HttpService.PostAsync<UpdateProjectLastPhaseDto, GeneralDto>(updateDto);
+            }
+        }
+        catch (TaskCanceledException) { /* Ignorar */ }
+    }
+
+    // --- REGLAS DE NEGOCIO (Bloqueos) ---
+    // Uso "is" para patrones, es más limpio en C# moderno
+    private bool DisableStart => _selectedProject.Status.Id == ProjectStatusEnum.DISCARTED_ID;
+
+    private bool DisablePlanning => _selectedProject.Status.Id is ProjectStatusEnum.CREATED_ID or ProjectStatusEnum.DISCARTED_ID;
+
+    private bool DisableExecution => _selectedProject.Status.Id is ProjectStatusEnum.CREATED_ID or ProjectStatusEnum.PLANNING_ID or ProjectStatusEnum.DISCARTED_ID;
+    private bool DisableMonitoring => DisableExecution; // Mismo que Execution
+
+    private bool DisableClosing =>
+        _selectedProject.Status.Id != ProjectStatusEnum.EXECUTION_ID;
+    // Reglas para modo "Solo Lectura" en los hijos
+    public bool DisableButtonsPlanning =>false;// _selectedProject.Status.Id == ProjectStatusEnum.PLANNING_ID ? false : true;
+    public bool DisableButtonsStart => _selectedProject.Status.Id == ProjectStatusEnum.CREATED_ID || _selectedProject.Status.Id == ProjectStatusEnum.PLANNING_ID ? false : true;
+
+
+    // --- LIMPIEZA ---
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        NotificationService.OnProjectsChanged -= GetProjectDashBoard;
+    }
+}

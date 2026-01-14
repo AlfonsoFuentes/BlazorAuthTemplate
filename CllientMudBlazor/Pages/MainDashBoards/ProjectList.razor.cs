@@ -1,7 +1,4 @@
 ﻿using CllientMudBlazor.Pages.Projects.Managements.Create;
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Enums.ProjectNeedTypes;
 
@@ -82,6 +79,7 @@ namespace CllientMudBlazor.Pages.MainDashBoards
                 _projects = result.Data;
                 StateHasChanged();
             }
+            
         }
         private List<ProjectDashboardDto> _projects = new();
     }

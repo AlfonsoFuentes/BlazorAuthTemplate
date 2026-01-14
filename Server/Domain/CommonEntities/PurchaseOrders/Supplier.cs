@@ -1,5 +1,4 @@
 ﻿using Shared.Enums.CurrencyEnums;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Domain.CommonEntities.PurchaseOrders
 {
@@ -19,23 +18,19 @@ namespace Server.Domain.CommonEntities.PurchaseOrders
         public int SupplierCurrency { get; set; } = 0;
         [NotMapped]
         public CurrencyEnum SupplierCurrencyEnum => CurrencyEnum.GetType(SupplierCurrency);
-        public static Supplier Create(string Name, string VendorCode, string TaxCodeLD, string TaxCodeLP, int SupplierCurrency)
-        {
-            return new Supplier()
-            {
-                Name = Name,
-                VendorCode = VendorCode,
-                TaxCodeLD = TaxCodeLD,
-                TaxCodeLP = TaxCodeLP,
-                SupplierCurrency = SupplierCurrency
-            };
-
-        }
-        public static Supplier Create()
-        {
-            return new() { Id = Guid.NewGuid() };
-        }
+       
         [ForeignKey("SupplierId")]
         public ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
+    }
+    internal class SupplierConfig : IEntityTypeConfiguration<Supplier>
+    {
+        public void Configure(EntityTypeBuilder<Supplier> builder)
+        {
+            builder.HasKey(ci => ci.Id);
+            builder.HasQueryFilter(x => x.IsDeleted == false);
+
+
+        }
+
     }
 }
