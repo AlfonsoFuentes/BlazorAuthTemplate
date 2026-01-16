@@ -1,0 +1,51 @@
+﻿@using Shared.Dtos.Projects._2._Plannings.Gantts
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+            Assignments: @_budgetItemName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (!_details.Any())
+        {
+            <MudAlert Severity="Severity.Info">No tasks assigned to this item yet.</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="_details" Dense="true" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Gantt Task</MudTh>
+                    <MudTh>End Date</MudTh>
+                 
+                    <MudTh Style="text-align:right">Amount</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Task">@context.TaskName</MudTd>
+                    <MudTd DataLabel="End Date">@context.EndDate?.ToString("dd/MM/yyyy")</MudTd>
+                  
+                    <MudTd DataLabel="Amount" Style="text-align:right; font-family:monospace">
+                        @context.AmountAssigned.ToCurrencyCulture()
+                    </MudTd>
+                </RowTemplate>
+                <FooterContent>
+                    <MudTFootRow>
+                        <MudTd colspan="3"><b>Total Assigned</b></MudTd>
+                        <MudTd Style="text-align:right"><b>@_details.Sum(x => x.AmountAssigned).ToCurrencyCulture()</b></MudTd>
+                    </MudTFootRow>
+                </FooterContent>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Secondary">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    
+}

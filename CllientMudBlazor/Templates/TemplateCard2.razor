@@ -98,8 +98,9 @@
                         </div>
 
                         <div class="d-flex gap-2">
-                            <MudButton Variant="Variant.Text" Disabled="@(DisableAddEdit || !item.IsEditable)" Size="Size.Small" Color="Color.Primary" OnClick="@(() => Edit.InvokeAsync(item))">Edit</MudButton>
-                            <MudButton Variant="Variant.Text" Disabled="@(DisableAddEdit || !item.IsEditable)" Size="Size.Small" Color="Color.Error" OnClick="@(() => Delete.InvokeAsync(item))">Delete</MudButton>
+                            <IconButton Color="Color.Primary" Disabled="@(DisableAddEdit || !item.IsEditable)" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => Edit.InvokeAsync(item))" ToolTip="Edit" />
+                            <IconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(() => Delete.InvokeAsync(item))" ToolTip="Delete"/>
+                           
                         </div>
                     </MudPaper>
                 }

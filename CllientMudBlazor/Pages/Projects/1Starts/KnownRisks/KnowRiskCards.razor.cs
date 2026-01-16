@@ -1,7 +1,9 @@
-﻿using CllientMudBlazor.Pages.StakeHolders;
+﻿using CllientMudBlazor.Pages.Projects._1Starts.Qualitys;
+using CllientMudBlazor.Pages.StakeHolders;
 using Shared.Dtos.StakeHolders;
 using Shared.Dtos.Starts.ExpertJudgements;
 using Shared.Dtos.Starts.KnownRisks;
+using Shared.Dtos.Starts.Qualitys;
 
 namespace CllientMudBlazor.Pages.Projects._1Starts.KnownRisks
 {
@@ -154,7 +156,25 @@ namespace CllientMudBlazor.Pages.Projects._1Starts.KnownRisks
                 await LoadDataAsync();
             }
         }
+        async Task OpenInvestmentsDialog(KnownRiskDto item)
+        {
+            var parameters = new DialogParameters<KnownRiskInvestmentsDialog>
+        {
+            { x => x.KnownRiskId, item.Id },
+            { x => x.KnownRiskName, item.Name },
+            { x => x.ProjectId, ProjectId },
+            { x => x.DisableAddEdit, DisableAddEdit }
+        };
 
+            var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+            // Al cerrar el diálogo, refrescamos la lista principal para actualizar los costos mostrados en los chips
+            var dialog = await DialogService.ShowAsync<KnownRiskInvestmentsDialog>($"Investments", parameters, options);
+            var result = await dialog.Result;
+
+            // Refrescamos Quality para ver los totales actualizados en las tarjetas
+            await LoadDataAsync();
+        }
 
     }
 }

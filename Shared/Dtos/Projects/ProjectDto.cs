@@ -69,10 +69,14 @@ namespace Shared.Dtos.Projects
 
 
     }
-    public class ExportProjectChartedPDF
+    public class ExportProjectCharterReport
     {
         public Guid ProjectId { get; set; }
 
+    }
+    public class ExportTechnicalRiskReport
+    {
+        public Guid ProjectId { get; set; }
     }
     public class ExportProjectPlannPDF
     {

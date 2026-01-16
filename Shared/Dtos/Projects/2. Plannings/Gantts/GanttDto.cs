@@ -101,6 +101,7 @@ namespace Shared.Dtos.Projects.Plannings.Gantts
 
     public class MonthlyExpenditureRow
     {
+        public Guid? Id { get; set; } // <--- AGREGAR ESTO
         public string BudgetName { get; set; } = string.Empty;
         public string Nomenclatore { get; set; } = string.Empty;
         public decimal OriginalBudget { get; set; } // Presupuesto base del BudgetItem

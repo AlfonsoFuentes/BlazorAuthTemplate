@@ -48,6 +48,7 @@ namespace Server.DataContext
         DbSet<TaskChangeLog> TaskChangeLogs { get; set; }
         DbSet<RiskResponseAction> RiskResponseActions { get; set; }
         DbSet<BudgetItem> BudgetItems { get; set; }
+        DbSet<HazopNode> HazopNodes { get; set; }
 
         Task<T?> GetOrAddCacheAsync<T>(Func<Task<T?>> addItemFactory, string key, bool IsTenanted = false) where T : class; // T sigue siendo class, pero el resultado puede ser null
         void InvalidateCache(params string[] types);

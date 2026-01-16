@@ -1,6 +1,7 @@
 ﻿using Server.DataContext;
 using Server.Interfaces.EndPoints;
 using Server.Services.Repositories;
+using Shared.Dtos.BudgetItems;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Dtos.StakeHolders;
@@ -43,6 +44,21 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                 Id = row.Responsible!.Id,
                 Name = row.Responsible.Name
             } : null;
+            if (row.RequirementBudgetItems != null)
+            {
+                dto.LinkedInvestments = row.RequirementBudgetItems
+
+                        .Select(x => new BudgetItemDto
+                        {
+                            Id = x.BudgetItem.Id,
+                            Name = x.BudgetItem.Name,
+                            Quantity = x.BudgetItem.Quantity,
+                            UnitPriceUSD = x.BudgetItem.UnitPriceUSD,
+                            Order = x.BudgetItem.Order,
+                            Category = x.BudgetItem.Category
+
+                        }).ToList();
+            }
             return dto;
 
         }
@@ -166,6 +182,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.Requirements
                     return await _context.Requirements
                     .Include(x => x.RequestedBy)
                     .Include(x => x.Responsible)
+                    .Include(x=>x.RequirementBudgetItems).ThenInclude(x=>x.BudgetItem)  
                   .AsSplitQuery()
                   .AsNoTracking()
                   .AsQueryable()

@@ -1,4 +1,5 @@
-﻿using Shared.Enums.RequirementPrioritys;
+﻿using Server.Domain.CommonEntities.BudgetItems;
+using Shared.Enums.RequirementPrioritys;
 
 namespace Server.Domain.CommonEntities.ProjectManagements
 {
@@ -22,6 +23,11 @@ namespace Server.Domain.CommonEntities.ProjectManagements
         public RequirementTypeEnum TypeEnum => RequirementTypeEnum.GetType(Type);
 
 
+
+        public ICollection<RequirementBudgetItem> RequirementBudgetItems { get; set; } = new List<RequirementBudgetItem>();
+
+        [NotMapped]
+        public List<BudgetItem> RelatedBudgetItems => RequirementBudgetItems?.Select(x => x.BudgetItem).ToList() ?? new();
 
 
     }

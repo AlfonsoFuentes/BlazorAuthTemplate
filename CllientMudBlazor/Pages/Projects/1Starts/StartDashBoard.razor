@@ -1,9 +1,11 @@
-﻿
+﻿@using CllientMudBlazor.Pages.Projects._1Starts.Hazops
+
 
 
 <MudStack Style="width:100%">
     <MudToolBar Class="d-flex justify-start gap-4" Dense="true">
         <IconButton ToolTip="Get Project Charter" Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Primary" Size="Size.Medium" OnClick="GetProjectCharterPDF"></IconButton>
+        <IconButton ToolTip="Get Project Rsik" Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Primary" Size="Size.Medium" OnClick="GetProjectRiskPDF"></IconButton>
 
         <IconButton ToolTip="Approve Project Start (Freeze Investment)" Icon="@Icons.Material.Filled.Approval" Color="Color.Primary"
                     Size="Size.Medium" OnClick="OpenApproveProjectDialog" Disabled="DisableButtonsAddEdit"></IconButton>
@@ -94,6 +96,9 @@
                 case DashBoardsStartTable.Investment:
                     <BudgetList ProjectId="@ProjectId" DisableAddEdit="DisableButtonsAddEdit" />
                     break;
+                case DashBoardsStartTable.Hazop:
+                    <HazopAnalisys ProjectId="@ProjectId"  />
+                    break;
             }
         </MudPaper>
     }
@@ -152,11 +157,11 @@
 
     async Task GetProjectCharterPDF()
     {
-        ExportProjectChartedPDF model = new ExportProjectChartedPDF()
+        ExportProjectCharterReport model = new ExportProjectCharterReport()
         {
             ProjectId = ProjectId
         };
-        var result = await HttpService.PostAsync<ExportProjectChartedPDF, GeneralDto<FileResult>>(model);
+        var result = await HttpService.PostAsync<ExportProjectCharterReport, GeneralDto<FileResult>>(model);
 
         if (result.Succeeded)
         {
@@ -172,9 +177,29 @@
                 _snackbarService.ShowError($"Failed to download Project Charter");
             }
         }
-        else
+       
+    }async Task GetProjectRiskPDF()
+    {
+        ExportTechnicalRiskReport model = new ExportTechnicalRiskReport()
         {
-            _snackbarService.ShowError(result.Message);
+            ProjectId = ProjectId
+        };
+        var result = await HttpService.PostAsync<ExportTechnicalRiskReport, GeneralDto<FileResult>>(model);
+
+        if (result.Succeeded)
+        {
+            var downloadresult = await blazorDownloadFileService.DownloadFile(result.Data.ExportFileName,
+              result.Data.Data, contentType: result.Data.ContentType);
+
+            if (downloadresult.Succeeded)
+            {
+                _snackbarService.ShowSuccess($"Project Charter exported successfully");
+            }
+            else
+            {
+                _snackbarService.ShowError($"Failed to download Project Charter");
+            }
         }
+       
     }
 }

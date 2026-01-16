@@ -103,7 +103,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.RiskResponseActions
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {   // Invalidación idéntica a tu ejemplo
-                    var cacheKeyExportProjectPlannPDF = $"{typeof(ExportProjectChartedPDF).Name}-{row.RiskMatrix.ProjectId}";
+                    var cacheKeyExportProjectPlannPDF = $"{typeof(ExportProjectCharterReport).Name}-{row.RiskMatrix.ProjectId}";
                     var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
                     var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardStartById).Name}-{row.RiskMatrix.ProjectId}";
 
@@ -211,7 +211,7 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectStarts.RiskResponseActions
                         i++;
                     }
                     await _context.SaveChangesAsync();
-                    var cacheKeyExportProjectPlannPDF = $"{typeof(ExportProjectChartedPDF).Name}-{row.RiskMatrix.ProjectId}";
+                    var cacheKeyExportProjectPlannPDF = $"{typeof(ExportProjectCharterReport).Name}-{row.RiskMatrix.ProjectId}";
                     var cacheKeyProjectDashBoards = $"{typeof(GetAllProjectDashBoards).Name}";
                     var cacheKeyProjectDashBoardsById = $"{typeof(GetProjectDashBoardStartById).Name}-{row.RiskMatrix.ProjectId}";
                     var cacheKeyAll = $"{typeof(GetAllRiskResponseActionsByRiskId).Name}{row.RiskMatrixId}";

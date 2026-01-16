@@ -3,7 +3,7 @@ using Shared.Dtos.BudgetItems;
 using Shared.Dtos.Plannings.RiskMatrixs;
 using Shared.Dtos.ProjectDefinitions;
 using Shared.Dtos.Projects;
-using Shared.Dtos.StakeHolders;
+using Shared.Dtos.Projects._1._Starts.Hazops;
 using Shared.Dtos.Starts.ExpertJudgements;
 using Shared.Dtos.Starts.KnownRisks;
 using Shared.Dtos.Starts.LearnedLessonsByProjects;
@@ -22,7 +22,7 @@ public static class ProjectCacheBrain
     public static string[] GetStartKeyToInvalidate(Guid projectId, Guid Id, DashBoardsStartTable type)
     {
         var keysToKill = new HashSet<string>();
-        keysToKill.Add($"{typeof(ExportProjectChartedPDF).Name}-{projectId}");
+        keysToKill.Add($"{typeof(ExportProjectCharterReport).Name}-{projectId}");
         keysToKill.Add($"{typeof(GetAllProjectDashBoards).Name}");
         keysToKill.Add($"{typeof(GetProjectDashBoardStartById).Name}-{projectId}");
         keysToKill.Add($"{typeof(GetProjectDashBoardById).Name}-{projectId}");
@@ -31,7 +31,7 @@ public static class ProjectCacheBrain
             keysToKill.Add($"{getAll}-{projectId}");
         var getById = GetByIdStartListKey(type);
         if (!string.IsNullOrEmpty(getById))
-            keysToKill.Add($"{getById}-{projectId}-{Id}");
+            keysToKill.Add($"{getById}-{Id}");
 
 
         return keysToKill.ToArray();
@@ -39,7 +39,7 @@ public static class ProjectCacheBrain
     public static string[] GetStartKeyToInvalidate(Guid projectId, Guid Id, ProjectDefinitionType definitionType)
     {
         var keysToKill = new HashSet<string>();
-        keysToKill.Add($"{typeof(ExportProjectChartedPDF).Name}-{projectId}");
+        keysToKill.Add($"{typeof(ExportProjectCharterReport).Name}-{projectId}");
         keysToKill.Add($"{typeof(GetAllProjectDashBoards).Name}");
         keysToKill.Add($"{typeof(GetProjectDashBoardStartById).Name}-{projectId}");
         keysToKill.Add($"{typeof(GetProjectDashBoardById).Name}-{projectId}");
@@ -76,6 +76,7 @@ public static class ProjectCacheBrain
             DashBoardsStartTable.Investment => $"{typeof(GetAllBudgetItems).Name}",
 
             DashBoardsStartTable.RiskMatrix => $"{typeof(GetAllRiskMatrixs).Name}",
+            DashBoardsStartTable.Hazop => $"{typeof(GetAllHazopNodes).Name}",
 
 
 
@@ -127,7 +128,7 @@ public static class ProjectCacheBrain
             DashBoardsStartTable.Investment => $"{typeof(GetBudgetItemById).Name}",
 
             DashBoardsStartTable.RiskMatrix => $"{typeof(GetRiskMatrixById).Name}",
-
+            DashBoardsStartTable.Hazop => $"{typeof(GetHazopNodeById).Name}",
 
 
 

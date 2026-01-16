@@ -402,6 +402,45 @@ namespace Server.Migrations
                     b.ToTable("QualityBudgetItem");
                 });
 
+            modelBuilder.Entity("Server.Domain.CommonEntities.BudgetItems.RequirementBudgetItem", b =>
+                {
+                    b.Property<Guid>("RequirementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BudgetItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("RequirementId", "BudgetItemId");
+
+                    b.HasIndex("BudgetItemId");
+
+                    b.ToTable("RequirementBudgetItem");
+                });
+
             modelBuilder.Entity("Server.Domain.CommonEntities.BudgetItems.RiskBudgetItem", b =>
                 {
                     b.Property<Guid>("RiskMatrixId")
@@ -875,6 +914,114 @@ namespace Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GeneralLearnedLessons");
+                });
+
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.HazopDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Causes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Consequences")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("GuideWord")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("HazopNodeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Parameter")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Recommendations")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Safeguards")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HazopNodeId");
+
+                    b.ToTable("HazopDetails");
+                });
+
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.HazopNode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DesignIntent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("HazopNodes");
                 });
 
             modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.KnownRisk", b =>
@@ -2110,6 +2257,25 @@ namespace Server.Migrations
                     b.Navigation("Quality");
                 });
 
+            modelBuilder.Entity("Server.Domain.CommonEntities.BudgetItems.RequirementBudgetItem", b =>
+                {
+                    b.HasOne("Server.Domain.CommonEntities.BudgetItems.BudgetItem", "BudgetItem")
+                        .WithMany("RequirementBudgetItems")
+                        .HasForeignKey("BudgetItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Server.Domain.CommonEntities.ProjectManagements.Requirement", "Requirement")
+                        .WithMany("RequirementBudgetItems")
+                        .HasForeignKey("RequirementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BudgetItem");
+
+                    b.Navigation("Requirement");
+                });
+
             modelBuilder.Entity("Server.Domain.CommonEntities.BudgetItems.RiskBudgetItem", b =>
                 {
                     b.HasOne("Server.Domain.CommonEntities.BudgetItems.BudgetItem", "BudgetItem")
@@ -2209,6 +2375,28 @@ namespace Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Parent");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.HazopDetail", b =>
+                {
+                    b.HasOne("Server.Domain.CommonEntities.ProjectManagements.HazopNode", "HazopNode")
+                        .WithMany("Details")
+                        .HasForeignKey("HazopNodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HazopNode");
+                });
+
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.HazopNode", b =>
+                {
+                    b.HasOne("Server.Domain.CommonEntities.Project", "Project")
+                        .WithMany("HazopNodes")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Project");
                 });
@@ -2441,6 +2629,8 @@ namespace Server.Migrations
 
                     b.Navigation("QualityBudgetItems");
 
+                    b.Navigation("RequirementBudgetItems");
+
                     b.Navigation("RiskBudgetItems");
                 });
 
@@ -2457,6 +2647,8 @@ namespace Server.Migrations
                     b.Navigation("ExpertJudgements");
 
                     b.Navigation("GanttTasks");
+
+                    b.Navigation("HazopNodes");
 
                     b.Navigation("KnownRisks");
 
@@ -2498,6 +2690,11 @@ namespace Server.Migrations
                     b.Navigation("LearnedLessons");
                 });
 
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.HazopNode", b =>
+                {
+                    b.Navigation("Details");
+                });
+
             modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.KnownRisk", b =>
                 {
                     b.Navigation("KnownRiskBudgetItems");
@@ -2506,6 +2703,11 @@ namespace Server.Migrations
             modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.Quality", b =>
                 {
                     b.Navigation("QualityBudgetItems");
+                });
+
+            modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.Requirement", b =>
+                {
+                    b.Navigation("RequirementBudgetItems");
                 });
 
             modelBuilder.Entity("Server.Domain.CommonEntities.ProjectManagements.RiskMatrix", b =>

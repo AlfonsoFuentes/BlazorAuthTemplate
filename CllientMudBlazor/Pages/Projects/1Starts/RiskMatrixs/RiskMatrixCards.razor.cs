@@ -1,6 +1,5 @@
 ﻿using Shared.Dtos.Plannings.RiskMatrixs;
 using Shared.Dtos.Projects._1._Starts.RiskMatrixs.RiskResponseActions;
-using Shared.Dtos.Starts.ExpertJudgements;
 
 namespace CllientMudBlazor.Pages.Projects._1Starts.RiskMatrixs
 {
@@ -411,6 +410,25 @@ namespace CllientMudBlazor.Pages.Projects._1Starts.RiskMatrixs
                 Model.RiskResponseActions = res.Data;
                 StateHasChanged();
             }
+        }
+        async Task OpenInvestmentsDialog(RiskMatrixDto item)
+        {
+            var parameters = new DialogParameters<RiskMatrixInvestmentsDialog>
+        {
+            { x => x.RiskMatrixId, item.Id },
+            { x => x.RiskMatrixName, item.Title },
+            { x => x.ProjectId, ProjectId },
+            { x => x.DisableAddEdit, DisableAddEdit }
+        };
+
+            var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+            // Al cerrar el diálogo, refrescamos la lista principal para actualizar los costos mostrados en los chips
+            var dialog = await DialogService.ShowAsync<RiskMatrixInvestmentsDialog>($"Investments", parameters, options);
+            var result = await dialog.Result;
+
+            // Refrescamos Quality para ver los totales actualizados en las tarjetas
+            await LoadDataAsync();
         }
     }
 }

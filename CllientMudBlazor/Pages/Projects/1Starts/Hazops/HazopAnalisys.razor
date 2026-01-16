@@ -1,0 +1,166 @@
+﻿@using Shared.Dtos.Projects._1._Starts.Hazops
+
+@using Shared.Enums.Hazops
+
+
+<MudGrid Spacing="1">
+    @* --- PANEL IZQUIERDO: LISTA DE NODOS --- *@
+    <MudItem xs="12" md="3">
+        <MudCard Elevation="2" Class="pa-2 d-flex flex-column" Style="height: calc(100vh - 120px); overflow: hidden;">
+            <MudStack>
+                <div class="d-flex align-center justify-space-between mb-2 pa-2 flex-none">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: bold;">PROCESS NODES</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.AddCircle" Color="Color.Primary" OnClick="StartCreateNode" Size="Size.Small" />
+                </div>
+                <MudDivider />
+                <MudList T="HazopNodeDto" Dense="true" SelectionMode="SelectionMode.SingleSelection"
+                         SelectedValue="_selectedNode" SelectedValueChanged="OnNodeSelected">
+                    @foreach (var node in _nodes)
+                    {
+                        <MudListItem Value="node" Dense="true" Text="@node.Name"
+                                     Icon="@(_selectedNode?.Id == node.Id ? Icons.Material.Filled.ArrowForwardIos : "")" />
+                    }
+                </MudList>
+            </MudStack>
+            
+        </MudCard>
+    </MudItem>
+
+    @* --- PANEL DERECHO: MESA DE TRABAJO --- *@
+    <MudItem xs="12" md="9">
+        @if (_selectedNode == null)
+        {
+            <div class="d-flex flex-column align-center justify-center mt-10" style="color: gray;">
+                <MudIcon Icon="@Icons.Material.Filled.Security" Style="font-size: 5rem;" />
+                <MudText Typo="Typo.h6">Select or create a node to begin HAZOP study</MudText>
+            </div>
+        }
+        else
+        {
+            <MudCard Elevation="2">
+                @* HEADER DEL NODO CON EDITFORM *@
+                <div class="pa-4  d-flex align-center justify-space-between">
+                    @if (_isEditingNode)
+                    {
+                        <EditForm Model="_selectedNode" style="width:100%">
+                            <FluentValidationValidator @ref="_validator" />
+                        
+                            <div class="d-flex align-center flex-grow-1 gap-2">
+                                <TextField @bind-Value="_selectedNode.Name" Label="Node Name" For="@(() => _selectedNode.Name)"  />
+                                <TextField @bind-Value="_selectedNode.DesignIntent" Label="Design Intent" For="@(() => _selectedNode.DesignIntent)" />
+                                <IconButton ToolTip="Save" Icon="@Icons.Material.Filled.Save" Color="Color.Success" Size="Size.Small" OnClick="SaveNode" Disabled="@IsValid" />
+                                <IconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" OnClick="@(() => _isEditingNode = false)" Size="Size.Small" />
+                            </div>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-center flex-grow-1 gap-2">
+                            <Field Label="Node Name">@_selectedNode.Name</Field>
+                            <Field Label="Design Intent">@_selectedNode.DesignIntent</Field>
+                            <IconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => _isEditingNode = true)" />
+                            <IconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(() => DeleteNode(_selectedNode))" />
+                        </div>
+
+                    }
+                </div>
+                <MudCard Elevation="1">
+                    @if (_selectedNode != null && _selectedNode.Id != Guid.Empty)
+                    {
+                        <TemplateCard2 TValue="HazopDetailDto"
+                                       Title="Hazop Deviations"
+                                       Items="@_selectedNode.Details"
+                                       Model="@DetailModel"
+                                       Create="AddDetailRow"
+                                       Edit="EditDetail"
+                                       Delete="DeleteDetail"
+                                       Submit="SaveDetail"
+                                       Cancel="CancelEditDetail"
+                                       HasOrder="false"
+                                       GroupBy="@(item => item.Parameter)"
+                                       DisableAddEdit=@DisableAddDetailButton>
+                            <GroupHeader Context="item">
+                                <div class="pa-2 mt-4 mb-2 rounded bg-light-blue-lighten-5 border-l-4 border-primary">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.SettingsInputComponent" Color="Color.Primary" Size="Size.Small" />
+                                        <MudText Typo="Typo.subtitle2" Style="font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                                            Parameter: @item.Parameter.ToString()
+                                        </MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
+                                            @(_selectedNode.Details.Count(x => x.Parameter == item.Parameter)) Deviations
+                                        </MudChip>
+                                    </MudStack>
+                                </div>
+                            </GroupHeader>
+                            <FormContent Context="ctx">
+                                <MudGrid>
+
+                                    <MudItem xs="6">
+                                        <SelectEnum @bind-Value="ctx.Model.Parameter" Label="Parameter" For="@(() => ctx.Model.Parameter)" />
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <SelectEnum @bind-Value="ctx.Model.GuideWord" Label="GuideWord" For="@(() => ctx.Model.GuideWord)" />
+                                    </MudItem>
+                                    <MudItem xs="6"> <TextField Lines="2" Label="Causes" @bind-Value="ctx.Model.Causes" Placeholder="Causes" For="@(() => ctx.Model.Causes)" /></MudItem>
+                                    <MudItem xs="6"> <TextField Lines="2" Label="Consequences" @bind-Value="ctx.Model.Consequences" Placeholder="Consequences" For="@(() => ctx.Model.Consequences)" /></MudItem>
+                                    <MudItem xs="6"> <TextField Lines="2" Label="SafeGuards" @bind-Value="ctx.Model.Safeguards" Placeholder="Safeguards" For="@(() => ctx.Model.Safeguards)" /></MudItem>
+                                    <MudItem xs="6"> <TextField Lines="2" Label="Recomendations" @bind-Value="ctx.Model.Recommendations" Placeholder="Recommendations" For="@(() => ctx.Model.Recommendations)" /></MudItem>
+                                </MudGrid>
+                            </FormContent>
+
+                            <MainContent Context="item">
+                                <MudGrid Spacing="1" Class="py-2">
+                                    <MudItem xs="12" sm="3">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="font-weight: 800">DEVIATION</MudText>
+                                            <MudText Typo="Typo.body2" Style="font-weight: 700">@item.Parameter.ToString() - @item.GuideWord.ToString()</MudText>
+                                        </MudStack>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.caption" Style="color: #757575">CAUSES / CONSEQUENCES</MudText>
+                                            <MudText Typo="Typo.body2">@item.Causes</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Dark">@item.Consequences</MudText>
+                                        </MudStack>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.caption" Style="color: #757575">SAFEGUARDS</MudText>
+                                            <MudText Typo="Typo.body2">@item.Safeguards</MudText>
+                                        </MudStack>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.caption" Color="Color.Info" Style="font-weight: 800">RECOMMENDATIONS</MudText>
+                                            <MudText Typo="Typo.body2" Class="blue-text" Style="font-weight: 600">@item.Recommendations</MudText>
+                                        </MudStack>
+                                    </MudItem>
+                                </MudGrid>
+                            </MainContent>
+
+                        </TemplateCard2>
+                    }
+
+
+                </MudCard>
+            </MudCard>
+        }
+    </MudItem>
+</MudGrid>
+<style>
+    .blue-text {
+        color: #1976D2;
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+    /* Ajuste para que el TemplateCard2 se vea más compacto */
+    .mud-paper.pa-3 {
+        padding: 8px 12px !important;
+    }
+</style>
+@code {
+    [Parameter]
+    public bool DisableAddEdit { get; set; } = false;
+}

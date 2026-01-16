@@ -28,7 +28,7 @@ namespace Server.Domain.CommonEntities
         public bool IsProductiveAsset { get; set; } = true;
         public int LastVisitedPhase { get; set; } = 1;
         #region Start Management
-        //public List<BackGround> BackGrounds { get; set; } = new();
+        public List<HazopNode> HazopNodes { get; set; } = new();
         //public List<Objective> Objectives { get; set; } = new();
         public List<Requirement> Requirements { get; set; } = new();
         //public List<Scope> Scopes { get; set; } = new();
@@ -119,11 +119,11 @@ namespace Server.Domain.CommonEntities
                .OnDelete(DeleteBehavior.Cascade);
 
 
-            //builder.HasMany(x => x.Assumptions)
-            //.WithOne(t => t.Project)
-            //.HasForeignKey(e => e.ProjectId)
-            //   .IsRequired()
-            //   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(x => x.HazopNodes)
+            .WithOne(t => t.Project)
+            .HasForeignKey(e => e.ProjectId)
+               .IsRequired()
+               .OnDelete(DeleteBehavior.Cascade);
 
 
 

@@ -98,7 +98,56 @@
                     <MudText Typo="Typo.caption" Style="@($"background-color:white; color:{item.Priority.Color};")">@item.Priority.Name</MudText>
                    
                 </div>
+                <div class="mt-2">
+                    <MudText Typo="Typo.caption" Color="Color.Dark" Style="text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">
+                        Mitigation Strategy (Investments)
+                    </MudText>
+                    <IconButton ToolTip="Manage Investments"
+                                Color="Color.Primary"
+                                OnClick="() => OpenInvestmentsDialog(item)"
+                                Disabled="@(DisableAddEdit)"
+                                Size="Size.Small"
+                                Variant="Variant.Filled"
+                                Icon="@Icons.Material.Outlined.Add" />
+                </div>
+
+                @* FILA 3: LISTADO VERTICAL DE INVERSIONES *@
+                @if (item.LinkedInvestments != null && item.LinkedInvestments.Any())
+                {
+                    <div class="d-flex flex-column gap-1 mt-1">
+                        @foreach (var inv in item.LinkedInvestments)
+                        {
+                            <div class="d-flex align-center justify-space-between pa-1 px-2 mud-background-gray rounded">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">
+                                        <b>@inv.Category.GetDescription():</b> @inv.Name
+                                    </MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Style="font-family: monospace; font-weight: 600;">
+                                    @inv.BudgetUSD.ToCurrencyCulture()
+                                </MudText>
+                            </div>
+                        }
+                    </div>
+
+                    @* FILA 4: GRAN TOTAL *@
+                    <div class="d-flex justify-end mt-2 pt-2 border-t-2 border-solid mud-border-lines-default">
+                        <MudText Typo="Typo.subtitle2">
+                            GRAND TOTAL: <b class="ml-2" style="font-size: 1.1rem; color: var(--mud-palette-primary);">
+                                @item.LinkedInvestments.Sum(x => x.BudgetUSD).ToCurrencyCulture()
+                            </b>
+                        </MudText>
+                    </div>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Dense="true" Class="mt-1">
+                        No investments linked yet.
+                    </MudAlert>
+                }
             </div>
+            
         </div>
 
 

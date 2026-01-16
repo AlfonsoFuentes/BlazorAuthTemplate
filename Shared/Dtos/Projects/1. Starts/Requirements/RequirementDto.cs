@@ -1,4 +1,5 @@
-﻿using Shared.Dtos.General;
+﻿using Shared.Dtos.BudgetItems;
+using Shared.Dtos.General;
 using Shared.Dtos.StakeHolders;
 using Shared.Enums.RequirementPrioritys;
 using Shared.Interfaces;
@@ -17,6 +18,7 @@ namespace Shared.Dtos.Starts.Requirements
         public RequirementPriorityEnum Priority { set; get; } = RequirementPriorityEnum.None;
         public StakeHolderDto? Responsible { get; set; } = null!;
         public string ResponsibleName => Responsible != null ? Responsible.Name : string.Empty;
+        public List<BudgetItemDto> LinkedInvestments { get; set; } = new();
     }
     public class CreateRequirement : RequirementDto
     {

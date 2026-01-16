@@ -1,9 +1,12 @@
-﻿using Server.DataContext;
+﻿using Azure;
+using Server.DataContext;
+using Server.Domain.CommonEntities.BudgetItems;
 using Server.Interfaces.EndPoints;
 using Server.Services.Repositories;
 using Shared.Dtos.General;
 using Shared.Dtos.Projects;
 using Shared.Dtos.Projects._2._Plannings.Communications;
+using Shared.Dtos.Projects._2._Plannings.Gantts;
 using Shared.Dtos.Projects.Plannings.Gantts;
 using Shared.Enums.BudgetCategorys;
 using Shared.ExtensionsMethods;
@@ -589,14 +592,14 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectPlannings.Gantts
                 decimal baseForProvisionsBudget = summaryCapital.OriginalBudget + taxRow.OriginalBudget;
                 var totaltEng = project.PercentageEngineering + project.PercentageContingency;
 
-                engRow.OriginalBudget = baseForProvisionsBudget * (decimal)(project.PercentageEngineering / (100.0- totaltEng));
+                engRow.OriginalBudget = baseForProvisionsBudget * (decimal)(project.PercentageEngineering / (100.0 - totaltEng));
                 contRow.OriginalBudget = baseForProvisionsBudget * (decimal)(project.PercentageContingency / (100.0 - totaltEng));
 
                 // --- 4. PROCESAMIENTO DE FILAS REALES Y DISTRIBUCIÓN MENSUAL ---
                 var itemRows = new List<MonthlyExpenditureRow>();
                 foreach (var bi in allBudgetItems)
                 {
-                    var row = new MonthlyExpenditureRow { BudgetName = bi.Name, Nomenclatore = bi.Nomenclatore, OriginalBudget = bi.BudgetUSD };
+                    var row = new MonthlyExpenditureRow { Id = bi.Id, BudgetName = bi.Name, Nomenclatore = bi.Nomenclatore, OriginalBudget = bi.BudgetUSD };
 
                     // Filtrar tareas que terminan en cada mes para este ítem
                     var assignments = tasks.SelectMany(t => t.BudgetItemGanttTasks
@@ -629,8 +632,8 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectPlannings.Gantts
                     }
 
                     decimal baseForProvisionMonth = monthlyCap + monthlyTax;
-                    engRow.MonthlyValues[month] = baseForProvisionMonth * (decimal)(project.PercentageEngineering / 100.0);
-                    contRow.MonthlyValues[month] = baseForProvisionMonth * (decimal)(project.PercentageContingency / 100.0);
+                    engRow.MonthlyValues[month] = baseForProvisionMonth * (decimal)(project.PercentageEngineering / (100.0 - totaltEng));
+                    contRow.MonthlyValues[month] = baseForProvisionMonth * (decimal)(project.PercentageContingency / (100.0 - totaltEng));
                 }
 
                 // --- 6. ENSAMBLAJE FINAL ---
@@ -642,6 +645,24 @@ namespace Server.EndPoints.ProjectDashBoard.ProjectPlannings.Gantts
 
                 response.Rows = finalRows;
                 return Results.Ok(new GeneralDto<MonthlyExpenditureResponse> { Succeeded = true, Data = response });
+            });
+            app.MapPost("GetBudgetItemAssignmentDetail", async (GetBudgetItemAssignmentDetail request, IAppDbContext _context) =>
+            {
+                var details = await _context.Set<BudgetItemGanttTask>()
+                    .Include(x => x.GanttTask)
+                    .Where(x => x.BudgetItemId == request.BudgetItemId && !x.GanttTask.IsDeleted)
+                    .Select(x => new BudgetItemAssignmentDetailDto
+                    {
+                        TaskName = x.GanttTask.Name,
+                        EndDate = x.GanttTask.EndDate,
+                        AmountAssigned = x.AmountAssigned,
+                        Progress = 0 // Asumiendo que Progress es 0-100
+                    })
+                    .OrderBy(x => x.EndDate)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return Results.Ok(new GeneralDto<List<BudgetItemAssignmentDetailDto>> { Succeeded = true, Data = details });
+             
             });
         }
     }

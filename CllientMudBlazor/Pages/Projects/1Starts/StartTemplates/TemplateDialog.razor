@@ -1,7 +1,7 @@
 ﻿@* TemplateDialog.razor *@  
 @typeparam TValue
 
-<EditForm Model="@Model" OnValidSubmit="Submit">
+<EditForm Model="@Model">
     <FluentValidationValidator @ref="_validator" />
    @*  <ValidationSummary></ValidationSummary> *@
 
@@ -11,8 +11,10 @@
         </MudCardContent>
 
         <MudCardActions>
-            <MudIconButton Icon="@Icons.Material.Filled.Cancel" OnClick="Cancel" Color="Color.Transparent" Variant="Variant.Outlined"></MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Save" Disabled=!IsValid ButtonType="ButtonType.Submit" Variant="Variant.Outlined"></MudIconButton>
+            <IconButton Color="Color.Primary" Disabled=!IsValid Icon="@Icons.Material.Filled.Save" Size="Size.Small" ToolTip="Save"OnClick="Submit" />
+            <IconButton Color="Color.Surface" Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" OnClick="Cancel" ToolTip="Cancel" />
+
+           
         </MudCardActions>
     </MudCard>
 </EditForm>

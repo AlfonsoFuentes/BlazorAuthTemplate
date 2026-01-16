@@ -27,5 +27,17 @@ namespace CllientMudBlazor.Pages.Projects._2Planning.MonthlyExpends
             }
             Loading = false;
         }
+        private async Task OpenAssignmentDetail(MonthlyExpenditureRow row)
+        {
+            var parameters = new DialogParameters
+            {
+                { "BudgetItemId", row.Id }, // Necesitas que el Row traiga el Id del BudgetItem
+                { "ProjectId", ProjectId }
+            };
+
+            var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+            await DialogService.ShowAsync<AssignmentDetailDialog>("Assignment Breakdown", parameters, options);
+        }
     }
 }

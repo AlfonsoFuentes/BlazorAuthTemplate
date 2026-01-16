@@ -32,7 +32,8 @@ namespace Server.DataContext
         public DbSet<Project> Projects { get; set; } = null!;
         public DbSet<BudgetItem> BudgetItems { get; set; } = null!;
         public DbSet<StakeHolder> StakeHolders { get; set; } = null!;
-
+        public DbSet<HazopNode> HazopNodes { get; set; }
+        public DbSet<HazopDetail> HazopDetails { get; set; }
         public DbSet<KnownRisk> KnownRisks { get; set; }
 
         public DbSet<MonitoringLog> MonitoringLogs { get; set; } = null!;

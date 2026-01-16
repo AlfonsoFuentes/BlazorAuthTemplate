@@ -111,7 +111,10 @@ namespace Server.Domain.CommonEntities.BudgetItems
         // RISKS
         [ForeignKey("BudgetItemId")]
         public virtual ICollection<RiskBudgetItem> RiskBudgetItems { get; set; } = new List<RiskBudgetItem>();
-
+        [ForeignKey("BudgetItemId")]
+        public virtual ICollection<RequirementBudgetItem> RequirementBudgetItems { get; set; } = new List<RequirementBudgetItem>();
+        [NotMapped]
+        public List<Requirement> RelatedRequirements => RequirementBudgetItems?.Select(x => x.Requirement).ToList() ?? new();
         [NotMapped]
         public List<RiskMatrix> RelatedRisks => RiskBudgetItems?.Select(x => x.RiskMatrix).ToList() ?? new();
 

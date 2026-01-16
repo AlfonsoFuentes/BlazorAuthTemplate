@@ -1,6 +1,8 @@
-﻿using CllientMudBlazor.Pages.StakeHolders;
+﻿using CllientMudBlazor.Pages.Projects._1Starts.Requirements;
+using CllientMudBlazor.Pages.StakeHolders;
 using Shared.Dtos.ProjectDefinitions;
 using Shared.Dtos.StakeHolders;
+using Shared.Dtos.Starts.Requirements;
 using Shared.Dtos.Starts.Requirements;
 using Shared.Enums.ProjectDefinitionTypes;
 
@@ -216,5 +218,25 @@ namespace CllientMudBlazor.Pages.Projects._1Starts.Requirements
                 StateHasChanged();
             }
         }
+        async Task OpenInvestmentsDialog(RequirementDto item)
+        {
+            var parameters = new DialogParameters<RequirementInvestmentsDialog>
+        {
+            { x => x.RequirementId, item.Id },
+            { x => x.RequirementName, item.Name },
+            { x => x.ProjectId, ProjectId },
+            { x => x.DisableAddEdit, DisableAddEdit }
+        };
+
+            var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+            // Al cerrar el diálogo, refrescamos la lista principal para actualizar los costos mostrados en los chips
+            var dialog = await DialogService.ShowAsync<RequirementInvestmentsDialog>($"Investments", parameters, options);
+            var result = await dialog.Result;
+
+            // Refrescamos Quality para ver los totales actualizados en las tarjetas
+            await LoadDataAsync();
+        }
+
     }
 }

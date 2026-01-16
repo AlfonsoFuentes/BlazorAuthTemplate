@@ -48,6 +48,8 @@ namespace Shared.Enums.DashBoardTable
         Deliverables,
         [Description("Risk Matrix")]
         RiskMatrix,
+        [Description("Hazop Analisys")]
+        Hazop,
 
     }
 

@@ -15,6 +15,8 @@ namespace Server.Domain.CommonEntities.ProjectManagements
         [NotMapped]
         public List<BudgetItem> RelatedBudgetItems => KnownRiskBudgetItems?.Select(x => x.BudgetItem).ToList() ?? new();
 
+        
+
 
     }
     internal class KnownRiskConfig : IEntityTypeConfiguration<KnownRisk>

@@ -1,316 +1,117 @@
 ﻿using Shared.Dtos.BudgetItems;
+using Shared.Dtos.Projects._1._Starts.RiskMatrixBudgetItemDto;
+using Shared.Enums.BudgetCategorys;
 
 namespace CllientMudBlazor.Pages.Projects._1Starts.RiskMatrixs
 {
     public partial class RiskMatrixInvestmentsDialog
     {
-        private async Task AddInvestment(string category)
+        [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+        [Parameter] public Guid RiskMatrixId { get; set; }
+        [Parameter] public string RiskMatrixName { get; set; } = string.Empty;
+        [Parameter] public Guid ProjectId { get; set; }
+        [Parameter] public bool DisableAddEdit { get; set; }
+
+        private List<RiskMatrixBudgetItemDto> _items = new();
+        private List<BudgetItemDto> _availableBudgets = new();
+        private bool _loading = true;
+        private RiskMatrixBudgetItemDto Model = null!;
+
+        protected override async Task OnInitializedAsync()
         {
-            //    DialogParameters p = new();
-            //    DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
-            //    IDialogReference dialog = null!;
-
-            //    // 🔥 SWITCH: Decide qué Dialogo abrir según la selección del menú
-            //    switch (category)
-            //    {
-            //        case "Alteration":
-            //            {
-            //                var dtoAlt = new CreateAlteration { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<AlterationDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Foundation":
-            //            {
-            //                var dtoAlt = new CreateFoundation { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<FoundationDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Structural":
-            //            {
-            //                var dtoAlt = new CreateStructural { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<StructuralDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Equipment":
-            //            {
-            //                var dtoAlt = new CreateEquipment { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<EquipmentDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Valve":
-            //            {
-            //                var dtoAlt = new CreateValve { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<ValveDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Electrical":
-            //            {
-            //                var dtoAlt = new CreateElectrical { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<ElectricalDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Pipe":
-            //            {
-            //                var dtoAlt = new CreatePipe { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<PipeDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Instrument":
-            //            {
-            //                var dtoAlt = new CreateInstrument { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<InstrumentDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "EHS":
-            //            {
-            //                var dtoAlt = new CreateEHS { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<EHSDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Testing":
-            //            {
-            //                var dtoAlt = new CreateTesting { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<TestingDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "Painting":
-            //            {
-            //                var dtoAlt = new CreatePainting { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<PaintingDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-            //        case "EngineeringDesign":
-            //            {
-            //                var dtoAlt = new CreateEngineeringDesign { ProjectId = ProjectId, LinkToRiskMatrixId = RiskMatrixId };
-            //                p.Add("Model", dtoAlt);
-            //                dialog = await DialogService.ShowAsync<EngineeringDesignDialog>($"Add {category}", p, options);
-            //            }
-
-            //            break;
-
-
-
-
-
-            //            // Agrega aquí Structural, Equipment, etc...
-            //            // case "Structural": ...
-            //    }
-
-            //    if (dialog != null)
-            //    {
-            //        var result = await dialog.Result;
-            //        if (!result!.Canceled) await LoadItems();
-            //    }
+            await LoadDataAsync();
         }
-        private async Task EditItem(BudgetItemDto item)
+
+        private async Task LoadDataAsync()
         {
-            //    DialogParameters p = new();
-            //    DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
-            //    IDialogReference dialog = null!;
+            _loading = true;
 
-            //    // 🔥 SWITCH: Decide qué Dialogo abrir para EDITAR según la categoría guardada
-            //    switch (item.CategoryName)
-            //    {
-            //        case "Alteration":
-            //            {
-            //                var dtoTest = new EditAlteration { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<AlterationDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
+            // 1. Cargar relaciones actuales (Muchos a Muchos)
+            // Asumiendo que tienes un endpoint para obtener los items vinculados a una RiskMatrix
+            var responseRel = await HttpService.PostAsync<GetAllRiskMatrixBudgetItem, GeneralDto<List<RiskMatrixBudgetItemDto>>>(
+                new GetAllRiskMatrixBudgetItem { RiskMatrixId = RiskMatrixId });
 
-            //            break;
-            //        case "Foundation":
-            //            {
-            //                var dtoTest = new EditFoundation { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<FoundationDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Structural":
-            //            {
-            //                var dtoTest = new EditStructural { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<StructuralDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Equipment":
-            //            {
-            //                var dtoTest = new EditEquipment { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<EquipmentDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Valve":
-            //            {
-            //                var dtoTest = new EditValve { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<ValveDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Electrical":
-            //            {
-            //                var dtoTest = new EditElectrical { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<ElectricalDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Pipe":
-            //            {
-            //                var dtoTest = new EditPipe { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<PipeDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Instrument":
-            //            {
-            //                var dtoTest = new EditInstrument { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<InstrumentDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "EHS":
-            //            {
-            //                var dtoTest = new EditEHS { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<EHSDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Testing":
-            //            {
-            //                var dtoTest = new EditTesting { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<TestingDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-            //        case "Painting":
-            //            {
-            //                var dtoTest = new EditPainting { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<PaintingDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
-
-            //        case "EngineeringDesign":
-            //            {
-            //                var dtoTest = new EditEngineeringDesign { Id = item.Id, ProjectId = ProjectId };
-            //                p.Add("Model", dtoTest);
-            //                // Nota: Asegúrate de que tu TestingDialog soporte recibir un EditTesting o cargue por ID
-            //                dialog = await DialogService.ShowAsync<EngineeringDesignDialog>($"Edit {item.CategoryName}", p, options);
-            //            }
-
-            //            break;
+            // 2. Cargar todos los BudgetItems del proyecto para el selector
 
 
-            //    }
+            if (responseRel.Succeeded)
+                _items = responseRel.Data ?? new();
 
-            //    if (dialog != null)
-            //    {
-            //        var result = await dialog.Result;
-            //        if (!result!.Canceled) await LoadItems();
-            //    }
+
+
+            _loading = false;
         }
-        private async Task DeleteInvestment(BudgetItemDto item)
+
+        private void StartCreate(BudgetCategory cat)
         {
-            //    bool? confirm = await DialogService.ShowMessageBox(
-            //        "Warning",
-            //        $"Are you sure you want to delete {item.Name}?",
-            //        yesText: "Delete", cancelText: "Cancel");
-
-            //    if (confirm == true)
-            //    {
-            //        GeneralDto result = new();
-
-            //        // 🔥 Switch para llamar al endpoint de borrado correcto
-            //        switch (item.CategoryName)
-            //        {
-            //            case "Alteration":
-            //                result = await HttpService.PostAsync<DeleteAlteration, GeneralDto>(new DeleteAlteration { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Foundation":
-            //                result = await HttpService.PostAsync<DeleteFoundation, GeneralDto>(new DeleteFoundation { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Structural":
-            //                result = await HttpService.PostAsync<DeleteStructural, GeneralDto>(new DeleteStructural { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Equipment":
-            //                result = await HttpService.PostAsync<DeleteEquipment, GeneralDto>(new DeleteEquipment { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Valve":
-            //                result = await HttpService.PostAsync<DeleteValve, GeneralDto>(new DeleteValve { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Electrical":
-            //                result = await HttpService.PostAsync<DeleteElectrical, GeneralDto>(new DeleteElectrical { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Pipe":
-            //                result = await HttpService.PostAsync<DeletePipe, GeneralDto>(new DeletePipe { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Instrument":
-            //                result = await HttpService.PostAsync<DeleteInstrument, GeneralDto>(new DeleteInstrument { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "EHS":
-            //                result = await HttpService.PostAsync<DeleteEHS, GeneralDto>(new DeleteEHS { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Testing":
-            //                result = await HttpService.PostAsync<DeleteTesting, GeneralDto>(new DeleteTesting { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "Painting":
-            //                result = await HttpService.PostAsync<DeletePainting, GeneralDto>(new DeletePainting { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-            //            case "EngineeringDesign":
-            //                result = await HttpService.PostAsync<DeleteEngineeringDesign, GeneralDto>(new DeleteEngineeringDesign { Id = item.Id, ProjectId = ProjectId });
-            //                break;
-
-            //                // ... Agrega los demás casos aquí ...
-            //        }
-
-            //        if (result.Succeeded)
-            //        {
-            //            await LoadItems();
-            //        }
-            //    }
+            Model = new CreateRiskMatrixBudgetItem
+            { Id = Guid.Empty, ProjectId = ProjectId, Category = cat, Quantity = 1, RiskMatrixId = RiskMatrixId };
         }
+
+        private void Cancel()
+        {
+            Model = null!;
+        }
+        private List<BudgetCategory> _allowedCategories = Enum.GetValues(typeof(BudgetCategory))
+         .Cast<BudgetCategory>()
+         .Where(c => c != BudgetCategory.Tax && c != BudgetCategory.Engineering && c != BudgetCategory.Contingency)
+         .ToList();
+        private async Task Submit()
+        {
+
+
+            var response = await HttpService.PostAsync<RiskMatrixBudgetItemDto, GeneralDto>(Model);
+
+            if (response.Succeeded)
+            {
+                Model = null!;
+                await LoadDataAsync();
+                NotificationService.NotifyProjectsChanged(); // Para refrescar totales en otras pantallas
+            }
+        }
+        private async Task StartEdit(RiskMatrixBudgetItemDto item)
+        {
+            var result = await HttpService.PostAsync<GetByIdRiskMatrixBudgetItem, GeneralDto<EditRiskMatrixBudgetItem>>(
+                new GetByIdRiskMatrixBudgetItem { RiskMatrixId = item.RiskMatrixId, BudgetItemId = item.BudgetItemId });
+
+            if (result.Succeeded && result.Data != null)
+            {
+                Model = result.Data;
+
+            }
+
+        }
+        private async Task DeleteAsync(RiskMatrixBudgetItemDto item)
+        {
+            var parameters = new DialogParameters<DialogTemplate>
+            {
+                { x => x.ContentText, $"Are you sure you want to unlink this investment?" },
+                { x => x.ButtonText, "Unlink" },
+                { x => x.Color, Color.Error }
+            };
+
+            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+            var dialog = await DialogService.ShowAsync<DialogTemplate>("Unlink Investment", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result!.Canceled)
+            {
+                var request = new DeleteRiskMatrixBudgetItem
+                {
+                    RiskMatrixId = RiskMatrixId,
+                    BudgetItemId = item.BudgetItemId,
+                    ProjectId = ProjectId
+                };
+
+                var response = await HttpService.PostAsync<DeleteRiskMatrixBudgetItem, GeneralDto>(request);
+                if (response.Succeeded)
+                {
+                    await LoadDataAsync();
+                }
+            }
+        }
+
+        private void Close() => MudDialog.Close(DialogResult.Ok(true));
     }
     }

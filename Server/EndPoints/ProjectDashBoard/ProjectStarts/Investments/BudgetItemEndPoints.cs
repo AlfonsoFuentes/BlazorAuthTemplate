@@ -90,6 +90,14 @@ namespace Server.Endpoints
                 {
                     var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Investment);
                     _context.InvalidateCache(keys);
+                    var KnownRiskskeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.KnownRisks);
+                    _context.InvalidateCache(KnownRiskskeys);
+                    var RiskMatrixkeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.RiskMatrix);
+                    _context.InvalidateCache(RiskMatrixkeys);
+                    var Qualitykeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Quality);
+                    _context.InvalidateCache(Qualitykeys);
+                    var Requirementskeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Requirements);
+                    _context.InvalidateCache(Requirementskeys);
                     return Results.Ok(new GeneralDto { Succeeded = true, Message = "Updated successfully." });
                 }
                 return Results.Ok(new GeneralDto { Succeeded = false, Message = "Update failed." });
@@ -243,6 +251,14 @@ namespace Server.Endpoints
 
                     var keys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Investment);
                     _context.InvalidateCache(keys);
+                    var KnownRiskskeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.KnownRisks);
+                    _context.InvalidateCache(KnownRiskskeys);
+                    var RiskMatrixkeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.RiskMatrix);
+                    _context.InvalidateCache(RiskMatrixkeys);
+                    var Qualitykeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Quality);
+                    _context.InvalidateCache(Qualitykeys);
+                    var Requirementskeys = ProjectCacheBrain.GetStartKeyToInvalidate(dto.ProjectId, row.Id, DashBoardsStartTable.Requirements);
+                    _context.InvalidateCache(Requirementskeys);
                     return Results.Ok(new GeneralDto { Succeeded = true, Message = "Deleted successfully." });
                 }
                 return Results.Ok(new GeneralDto { Succeeded = false });

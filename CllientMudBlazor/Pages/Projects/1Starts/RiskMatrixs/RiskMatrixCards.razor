@@ -9,7 +9,6 @@
                Submit="Submit"
                Cancel="Cancel"
                GoUp="OrderUp"
-            
                DisableAddEdit=@DisableAddEdit
                GoDown="OrderDown">
 
@@ -141,7 +140,7 @@
                         <TextField @bind-Value="@ctx.Model.Trigger" Label="Trigger Condition" />
                     </MudItem>
 
-                   
+
                     <MudItem xs="12">
                         <MudDivider Class="my-4" />
                         <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Response Action Plan (Steps)</MudText>
@@ -292,46 +291,76 @@
     </FormContent>
 
     <MainContent Context="item">
-        <MudText Typo="Typo.subtitle1" Class="mb-1"><b>@item.Title</b></MudText>
+        <div class="d-flex flex-column w-100">
 
-        <MudAlert Severity="Severity.Info" Variant="Variant.Text" NoIcon="true" Class="py-1 my-2">
-            <MudText Typo="Typo.caption" Style="font-style:italic">
-                "Because of <b>@item.Cause</b>, <b>@item.RiskEvent</b> might occur, causing <b>@item.Effect</b>."
-            </MudText>
-        </MudAlert>
+            <MudText Typo="Typo.subtitle1" Class="mb-1"><b>@item.Title</b></MudText>
 
-        <div class="d-flex gap-2 my-2">
-            <MudTooltip Text="Response Strategy">
-                <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.Lightbulb">
-                    @item.StrategyType.ToString()
-                </MudChip>
-            </MudTooltip>
+            <MudAlert Severity="Severity.Info" Variant="Variant.Text" NoIcon="true" Class="py-1 my-2">
+                <MudText Typo="Typo.caption" Style="font-style:italic">
+                    "Because of <b>@item.Cause</b>, <b>@item.RiskEvent</b> might occur, causing <b>@item.Effect</b>."
+                </MudText>
+            </MudAlert>
 
-            <MudTooltip Text="Responsible">
-                <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Default">
-                    @item.Responsible
-                </MudChip>
-            </MudTooltip>
-        </div>
-
-        @if (item.LinkedInvestments != null && item.LinkedInvestments.Any())
-        {
-            <MudDivider Class="my-2" />
-            <MudText Typo="Typo.caption" Color="Color.Secondary"><b>Mitigation Costs:</b></MudText>
-
-             <div class="d-flex flex-wrap gap-1 mt-1">
-                @foreach (var inv in item.LinkedInvestments)
-                {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
-                        <b>@inv.Category.GetDescription():</b> @inv.BudgetUSD.ToCurrencyCulture())
+            <div class="d-flex gap-2 my-2">
+                <MudTooltip Text="Response Strategy">
+                    <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.Lightbulb">
+                        @item.StrategyType.ToString()
                     </MudChip>
-                }
-            </div> 
-            <MudText Typo="Typo.caption" Class="d-block mt-1 text-end">
-                Total: <b>@item.LinkedInvestments.Sum(x => x.BudgetUSD).ToCurrencyCulture())</b>
-            </MudText>
-        }
+                </MudTooltip>
 
+                <MudTooltip Text="Responsible">
+                    <MudChip T="string" Variant="Variant.Outlined" Size="Size.Small" Color="Color.Default">
+                        @item.Responsible
+                    </MudChip>
+                </MudTooltip>
+            </div>
+            <div class="mt-2">
+                <MudText Typo="Typo.caption" Color="Color.Dark" Style="text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">
+                    Mitigation Strategy (Investments)
+                </MudText>
+                <IconButton ToolTip="Manage Investments"
+                            Color="Color.Primary"
+                            OnClick="() => OpenInvestmentsDialog(item)"
+                            Disabled="@(DisableAddEdit)"
+                            Size="Size.Small"
+                            Variant="Variant.Filled"
+                            Icon="@Icons.Material.Outlined.Add" />
+            </div>
+            @if (item.LinkedInvestments != null && item.LinkedInvestments.Any())
+            {
+                <div class="d-flex flex-column gap-1 mt-1">
+                    @foreach (var inv in item.LinkedInvestments)
+                    {
+                        <div class="d-flex align-center justify-space-between pa-1 px-2 mud-background-gray rounded">
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">
+                                    <b>@inv.Category.GetDescription():</b> @inv.Name
+                                </MudText>
+                            </div>
+                            <MudText Typo="Typo.body2" Style="font-family: monospace; font-weight: 600;">
+                                @inv.BudgetUSD.ToCurrencyCulture()
+                            </MudText>
+                        </div>
+                    }
+                </div>
+
+                @* FILA 4: GRAN TOTAL *@
+                <div class="d-flex justify-end mt-2 pt-2 border-t-2 border-solid mud-border-lines-default">
+                    <MudText Typo="Typo.subtitle2">
+                        GRAND TOTAL: <b class="ml-2" style="font-size: 1.1rem; color: var(--mud-palette-primary);">
+                            @item.LinkedInvestments.Sum(x => x.BudgetUSD).ToCurrencyCulture()
+                        </b>
+                    </MudText>
+                </div>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Text" Dense="true" Class="mt-1">
+                    No investments linked yet.
+                </MudAlert>
+            }
+        </div>
     </MainContent>
 
 </TemplateCard2>
