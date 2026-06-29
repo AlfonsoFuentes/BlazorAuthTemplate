@@ -8,7 +8,7 @@
               Label="@Label"
               AdornmentIcon="@AdornmentIcon"
               Adornment="@Adornment"
-              AutoGrow="@Autogrow"
+               Sizing="@(Lines > 1 ? InputSizing.Auto : InputSizing.Fixed)"
               IconSize="@IconSize"
               Placeholder="@PlaceHolder"
               Variant="Variant.Outlined"
@@ -36,7 +36,6 @@
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
     [Parameter] public InputType InputType { get; set; } = InputType.Text;
     [Parameter] public int Lines { get; set; } = 1;
-    bool Autogrow => Lines > 1;
     [Parameter] public string PlaceHolder { get; set; } = string.Empty;
     [Parameter] public string Label { get; set; } = string.Empty;
     [Parameter] public Expression<Func<string>>? For { get; set; }

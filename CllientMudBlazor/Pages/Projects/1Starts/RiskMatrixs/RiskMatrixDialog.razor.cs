@@ -93,7 +93,7 @@ namespace CllientMudBlazor.Pages.Projects._1Starts.RiskMatrixs
 
         private async Task DeleteComment(RiskMatrixCommentDto item)
         {
-            bool? confirm = await DialogService.ShowMessageBox("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel");
+            bool? confirm = await DialogService.ShowMessageBoxAsync("Delete", "Are you sure?", yesText: "Delete", cancelText: "Cancel");
             if (confirm != true) return;
 
             if (Model.Id == Guid.Empty)

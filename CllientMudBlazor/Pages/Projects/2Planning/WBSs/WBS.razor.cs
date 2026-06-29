@@ -91,7 +91,7 @@ namespace CllientMudBlazor.Pages.Projects._2Planning.WBSs
 
         private async Task DeleteTask(GanttDto task)
         {
-            var confirm = await DialogService.ShowMessageBox(
+            var confirm = await DialogService.ShowMessageBoxAsync(
                 "Confirm Delete",
                 $"Are you sure you want to delete '{task.Name}' and its subtasks?",
                 yesText: "Delete", noText: "Cancel");

@@ -1,4 +1,6 @@
 ﻿@using CllientMudBlazor.Pages.Authentication
+@using CllientMudBlazor.Services
+@inject HttpInterceptorService Interceptor
 
 <CascadingValue Value="this">
     <CascadingAuthenticationState>
@@ -24,3 +26,11 @@
         </Error>
     </CascadingAuthenticationState>
 </CascadingValue>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Solo para forzar la inicialización del servicio de interceptación de 401
+        base.OnInitialized();
+    }
+}

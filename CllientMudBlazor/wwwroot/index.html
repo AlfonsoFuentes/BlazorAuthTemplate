@@ -4,17 +4,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CllientMudBlazor</title>
+    <title>Project Tool 2.0</title>
     <base href="/" />
-    <link rel="preload" id="webassembly" />
+    <!--<link rel="preload" id="webassembly" />-->
 
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
     <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
-    <script type="importmap"></script>
+
+   
+
+    <!--<script type="importmap"></script>-->
 </head>
 
 <body>
@@ -32,28 +34,31 @@
         <span class="dismiss">🗙</span>
     </div>
     <script>
-    // Usar (window as any) o simplemente declararlo como variable global
-    window["scrollToElement"] = (elementId) => {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'nearest'
-            });
+        // Usar (window as any) o simplemente declararlo como variable global
+        window["scrollToElement"] = (elementId) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
 
-            element.classList.add('highlight-new-task');
+                element.classList.add('highlight-new-task');
 
-            setTimeout(() => {
-                element.classList.remove('highlight-new-task');
-            }, 2000);
-        } else {
-            console.warn("Scroll failed: Element with id " + elementId + " not found.");
-        }
-    };
+                setTimeout(() => {
+                    element.classList.remove('highlight-new-task');
+                }, 2000);
+            } else {
+                console.warn("Scroll failed: Element with id " + elementId + " not found.");
+            }
+        };
     </script>
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+  
     <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
+    <!--<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>-->
 </body>
 
 </html>

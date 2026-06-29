@@ -83,7 +83,7 @@ namespace CllientMudBlazor.Pages.Projects._2Planning.Gantts
 
             if (SelectedTask == null) return;
             GanttDto task = SelectedTask;
-            var confirm = await DialogService.ShowMessageBox(
+            var confirm = await DialogService.ShowMessageBoxAsync(
                 "Confirm Delete",
                 $"Are you sure you want to delete '{task.Name}'?",
                 yesText: "Delete", noText: "Cancel");

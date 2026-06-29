@@ -275,6 +275,36 @@ namespace Server.EndPoints.Projects
                     Data = project?.StartDate
                 });
             });
+            app.MapPost("DeleteProject", async (DeleteProject dto, IAppDbContext _context) =>
+            {
+                var row = await _context.Projects.FindAsync(dto.Id);
+                if (row is null)
+                {
+                    return Results.Ok(new GeneralDto
+                    {
+                        Succeeded = false,
+                        Message = $"{typeof(Project).Name} was not found"
+                    });
+                }
+                row.IsDeleted = true;
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    var cacheKeyAll = $"{typeof(GetAllProjectDashBoards).Name}";
+                    var cacheKeyById = $"{typeof(GetProjectDashBoardById).Name}-{dto.Id}";
+                    var cacheKeyStartById = $"{typeof(GetProjectDashBoardStartById).Name}-{dto.Id}";
+                    _context.InvalidateCache(cacheKeyAll, cacheKeyById, cacheKeyStartById);
+                    return Results.Ok(new GeneralDto
+                    {
+                        Succeeded = true,
+                        Message = $"{typeof(Project).Name} was deleted"
+                    });
+                }
+                return Results.Ok(new GeneralDto
+                {
+                    Succeeded = false,
+                    Message = $"{typeof(Project).Name} was not deleted"
+                });
+            });
         }
     }
 }

@@ -14,13 +14,13 @@ namespace CllientMudBlazor.Services
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (request.Headers.Authorization == null || request.Headers.Authorization?.Scheme != "bearer")
+            if (request.Headers.Authorization == null || request.Headers.Authorization?.Scheme != "Bearer")
             {
                 var savedToken = await localStorage.GetItemAsync<string>("accessToken");
 
                 if (!string.IsNullOrWhiteSpace(savedToken))
                 {
-                    request.Headers.Authorization = new AuthenticationHeaderValue("bearer", savedToken);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", savedToken);
                 }
             }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -49,7 +50,7 @@ namespace Server.Services
             .AddJwtBearer(options =>
             {
                 options.SaveToken = true;
-                options.RequireHttpsMetadata = true;
+                options.RequireHttpsMetadata = false; // ✅ Permitir HTTP en desarrollo
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateLifetime = true,
@@ -58,12 +59,19 @@ namespace Server.Services
                     ValidateIssuerSigningKey = true,
                     ValidAudience = builder.Configuration["JWT:ValidAudience"],
                     ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-                    ClockSkew = TimeSpan.Zero,
+                    ClockSkew = TimeSpan.FromMinutes(5), // ✅ Evitar rechazos por diferencia de reloj
                     IssuerSigningKey =
                     new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]!))
                 };
             });
+            builder.Services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
             builder.Services.AddCors(options =>
             {

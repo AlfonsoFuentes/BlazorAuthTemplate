@@ -1,8 +1,7 @@
-﻿using Server.Interfaces.EndPoints;
-
-using Scalar.AspNetCore;
-
+﻿using Scalar.AspNetCore;
+using Server.Interfaces.EndPoints;
 using Server.Services;
+using System.Net;
 
 namespace Server.Services
 {
@@ -21,8 +20,8 @@ namespace Server.Services
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-            app.UseBlazorFrameworkFiles();
-            app.UseStaticFiles();
+     
+            app.MapStaticAssets();
 
             app.UseRouting();
             app.UseCors("AllowBlazorWasm");
@@ -31,12 +30,17 @@ namespace Server.Services
             app.UseAuthorization();
 
             app.MapEndPoint();
-            app.UseEndpoints();
-
+            app.MapRazorPages();
+            app.MapFallbackToFile("index.html");
+            app.MapControllers();
             return app;
         }
         internal static IApplicationBuilder MapEndPoint(this WebApplication app)
         {
+            // ✅ Todos los minimal endpoints requieren autenticación por defecto.
+            // Los controllers de autenticación (Login/Register) usan [AllowAnonymous] y no se ven afectados.
+            var apiGroup = app.MapGroup("").RequireAuthorization();
+
             // Usamos un Scope para asegurar la resolución de servicios
             using (var scope = app.Services.CreateScope())
             {
@@ -49,7 +53,7 @@ namespace Server.Services
                     // Aquí SI tenemos Try-Catch para que puedas inspeccionar el error
                     try
                     {
-                        endpoint.MapEndPoint(app);
+                        endpoint.MapEndPoint(apiGroup);
                     }
                     catch (Exception ex)
                     {
@@ -69,7 +73,7 @@ namespace Server.Services
                         // 🚀 MODO PRODUCCIÓN (Release)
                         // Aquí NO hay Try-Catch. Si falla, la aplicación se detiene inmediatamente.
                         // Esto es vital para que el servidor sepa que el despliegue falló.
-                        endpoint.MapEndPoint(app);
+                        endpoint.MapEndPoint(apiGroup);
                     #endif
                 }
             }
@@ -84,7 +88,7 @@ namespace Server.Services
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapFallbackToFile("index.html");
+             
 
             });
             return app;

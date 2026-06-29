@@ -112,7 +112,7 @@
     }
     private async Task DeleteComm(CommunicationDto comm)
     {
-        bool? result = await DialogService.ShowMessageBox(
+        bool? result = await DialogService.ShowMessageBoxAsync(
             "Delete Communication",
             "Are you sure you want to remove this communication plan?",
             yesText: "Delete", cancelText: "Cancel");

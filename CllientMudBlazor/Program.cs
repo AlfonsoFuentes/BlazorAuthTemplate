@@ -16,19 +16,15 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 string ClientName = "API";
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddTransient<AuthenticationHeaderHandler>()
-                .AddScoped(sp => sp
-                    .GetRequiredService<IHttpClientFactory>()
-                    .CreateClient(ClientName).EnableIntercept(sp))
-                .AddHttpClient(ClientName, client =>
-                {
-                    client.DefaultRequestHeaders.AcceptLanguage.Clear();
-                    client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(CultureInfo.DefaultThreadCurrentCulture?.TwoLetterISOLanguageName);
-                    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); // Fix: Use builder.HostEnvironment.BaseAddress
-
-                })
-                .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddTransient<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient(ClientName, (sp, client) =>
+{
+    client.DefaultRequestHeaders.AcceptLanguage.Clear();
+    client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(CultureInfo.DefaultThreadCurrentCulture?.TwoLetterISOLanguageName);
+    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+    client.EnableIntercept(sp);
+})
+.AddHttpMessageHandler<AuthenticationHeaderHandler>();
 builder.Services.AddHttpClientInterceptor();
 builder.Services.AddMudServices();
 builder.Services.AddScoped<ISnackBarService, SnackBarService>();
@@ -40,4 +36,5 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddSingleton<ProjectNotificationService>();
 builder.Services.AddBlazorDownloadFile();
+builder.Services.AddScoped<HttpInterceptorService>();
 await builder.Build().RunAsync();

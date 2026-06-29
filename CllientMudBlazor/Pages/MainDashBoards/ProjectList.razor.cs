@@ -81,6 +81,25 @@ namespace CllientMudBlazor.Pages.MainDashBoards
             }
             
         }
+        private async Task DeleteProjectAsync(ProjectDashboardDto project)
+        {
+            var confirmed = await DialogService.ShowMessageBoxAsync(
+                "Delete Project",
+                $"Are you sure you want to delete '{project.Name}'?",
+                yesText: "Delete",
+                cancelText: "Cancel");
+
+            if (confirmed != true)
+                return;
+
+            var result = await HttpService.PostAsync<DeleteProject, GeneralDto>(new DeleteProject { Id = project.Id });
+            if (result.Succeeded)
+            {
+                await GetAllProjectDashBoard();
+                StateHasChanged();
+                NotificationService.NotifyProjectsChanged();
+            }
+        }
         private List<ProjectDashboardDto> _projects = new();
     }
 }

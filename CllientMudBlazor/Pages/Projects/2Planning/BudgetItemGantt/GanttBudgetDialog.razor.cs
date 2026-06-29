@@ -96,7 +96,7 @@ namespace CllientMudBlazor.Pages.Projects._2Planning.BudgetItemGantt
         }
         private async Task DeleteAssignment(BudgetItemGanttTaskDto item)
         {
-            var confirm = await DialogService.ShowMessageBox(
+            var confirm = await DialogService.ShowMessageBoxAsync(
                 "Remove Link",
                 $"Are you sure you want to remove the link to '{item.BudgetName}'? The funds will return to the budget balance.",
                 yesText: "Remove", noText: "Cancel");

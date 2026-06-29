@@ -74,11 +74,31 @@ namespace Server.DataContext
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
             TenantedQueryFilter(builder);
+            SoftDeleteQueryFilter(builder);
 
         }
         void TenantedQueryFilter(ModelBuilder builder)
         {
-            builder.Entity<Project>().HasQueryFilter(x => x.TenantId == _tenantId);
+            // Project combina soft delete + tenant en un solo filtro
+            builder.Entity<Project>().HasQueryFilter(x => !x.IsDeleted && x.TenantId == _tenantId);
+        }
+        void SoftDeleteQueryFilter(ModelBuilder builder)
+        {
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                // Excluir Project (ya tiene su filtro combinado) y entidades sin IsDeleted
+                if (entityType.ClrType == typeof(Project) || entityType.FindProperty("IsDeleted") == null)
+                    continue;
+
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(SetSoftDeleteFilter), BindingFlags.NonPublic | BindingFlags.Instance)!
+                    .MakeGenericMethod(entityType.ClrType);
+                method.Invoke(this, new object[] { builder });
+            }
+        }
+        private void SetSoftDeleteFilter<TEntity>(ModelBuilder builder) where TEntity : class, ISoftDeletable
+        {
+            builder.Entity<TEntity>().HasQueryFilter(x => !x.IsDeleted);
         }
         void ConfigureDatatTypes(ModelBuilder builder)
         {

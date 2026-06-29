@@ -1,10 +1,6 @@
-﻿using CllientMudBlazor.Pages.Projects._1Starts.Requirements;
-using CllientMudBlazor.Pages.StakeHolders;
-using Shared.Dtos.ProjectDefinitions;
+﻿using CllientMudBlazor.Pages.StakeHolders;
 using Shared.Dtos.StakeHolders;
 using Shared.Dtos.Starts.Requirements;
-using Shared.Dtos.Starts.Requirements;
-using Shared.Enums.ProjectDefinitionTypes;
 
 namespace CllientMudBlazor.Pages.Projects._1Starts.Requirements
 {
